@@ -38,22 +38,22 @@ func main() {
 			if len(tokenInfo) == 0 {
 				return nil, errors.New("not exist token")
 			}
-
-			id, err := auth.VerifyAccessToken(tokenInfo[0])
+			_, err := auth.VerifyAccessToken(tokenInfo[0])
 			if err {
 				return nil, errors.New("not valid token")
 			}
-
-			log.Printf("connect: %v", id)
 			return nil, nil
 		},
 	})
 	server.OnConnect("/", func(s socketio.Conn) error {
+		url := s.URL()
+		id, _ := auth.VerifyAccessToken(
+			url.Query().Get("token"),
+		)
+		log.Printf("connect: %v", id)
 		return nil
 	})
-	server.OnDisconnect("/", func(s socketio.Conn, reason string) {
-
-	})
+	server.OnDisconnect("/", func(s socketio.Conn, reason string) {})
 
 	go func() {
 		if err := server.Serve(); err != nil {

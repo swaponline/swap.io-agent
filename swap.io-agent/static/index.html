@@ -7,13 +7,8 @@
   <title>Document</title>
 </head>
 <body>
-<script
-
-  src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.3/socket.io.js"
-  integrity="sha512-2RDFHqfLZW8IhPRvQYmK9bTLfj/hddxGXQAred2wNZGkrKQkLGj8RCkXfRJPHlDerdHHIzTFaahq4s/P4V6Qig=="
-  crossorigin="anonymous"
-  referrerpolicy="no-referrer"
-></script>
+<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.0/socket.io.js" integrity="sha512-uZgT8PW5iAQw3c9lhW1oRc0VNFiSM0146616kBVLBIJgH5lKZXJ0rGQ/UPbAXVxiUufF82u0INZi0toqS2bUTQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>-->
 <script>
 	fetch('/getToken')
 		.then(data => data.text())
