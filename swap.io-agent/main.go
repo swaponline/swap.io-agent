@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	socketio "github.com/googollee/go-socket.io"
 	"github.com/googollee/go-socket.io/engineio"
@@ -33,17 +32,7 @@ func main() {
 				CheckOrigin: allowOriginFunc,
 			},
 		},
-		RequestChecker: func(request *http.Request) (http.Header, error) {
-			tokenInfo := request.URL.Query()["token"]
-			if len(tokenInfo) == 0 {
-				return nil, errors.New("not exist token")
-			}
-			_, err := auth.VerifyAccessToken(tokenInfo[0])
-			if err {
-				return nil, errors.New("not valid token")
-			}
-			return nil, nil
-		},
+		RequestChecker: auth.AuthenticationSocketConnect,
 	})
 	server.OnConnect("/", func(s socketio.Conn) error {
 		url := s.URL()
