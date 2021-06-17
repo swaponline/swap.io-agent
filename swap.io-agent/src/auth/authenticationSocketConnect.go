@@ -10,7 +10,7 @@ func AuthenticationSocketConnect (request *http.Request) (http.Header, error) {
 	if len(tokenInfo) == 0 {
 		return nil, errors.New("not exist token")
 	}
-	_, err := VerifyAccessToken(tokenInfo[0])
+	_, err := DecodeAccessToken(tokenInfo[0])
 	if err {
 		return nil, errors.New("not valid token")
 	}

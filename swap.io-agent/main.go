@@ -4,39 +4,27 @@ import (
 	"fmt"
 	socketio "github.com/googollee/go-socket.io"
 	"github.com/googollee/go-socket.io/engineio"
-	"github.com/googollee/go-socket.io/engineio/transport"
-	"github.com/googollee/go-socket.io/engineio/transport/polling"
-	"github.com/googollee/go-socket.io/engineio/transport/websocket"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"swap.io-agent/src/auth"
 	"swap.io-agent/src/runApp"
+	"swap.io-agent/src/socket"
 )
-
-var allowOriginFunc = func(r *http.Request) bool {
-	return true
-}
 
 func main() {
 	err := runApp.LoadConfig()
 	if err != nil {panic(err)}
 
 	server := socketio.NewServer(&engineio.Options{
-		Transports: []transport.Transport{
-			&polling.Transport{
-				CheckOrigin: allowOriginFunc,
-			},
-			&websocket.Transport{
-				CheckOrigin: allowOriginFunc,
-			},
-		},
+		Transports: socket.DefaultTransport,
 		RequestChecker: auth.AuthenticationSocketConnect,
 	})
+
 	server.OnConnect("/", func(s socketio.Conn) error {
 		url := s.URL()
-		id, _ := auth.VerifyAccessToken(
+		id, _ := auth.DecodeAccessToken(
 			url.Query().Get("token"),
 		)
 		log.Printf("connect: %v", id)

@@ -7,7 +7,7 @@ import (
 	"swap.io-agent/src/models"
 )
 
-func VerifyAccessToken(tokenString string) (int,bool) {
+func DecodeAccessToken(tokenString string) (int,bool) {
 	tk := &models.Token{}
 	token, err := jwt.ParseWithClaims(
 		tokenString,
