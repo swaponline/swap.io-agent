@@ -1,0 +1,41 @@
+/coins-agent/.DS_Store
+/coins-agent/node_modules
+/coins-agent/dist
+
+# test artifacts
+/coins-agent/tests/e2e/videos/
+/coins-agent/tests/e2e/screenshots/
+
+# local env files
+/coins-agent/.env.local
+/coins-agent/.env.*.local
+/coins-agent/.env.production
+/coins-agent/.env.development
+
+# lock files
+/coin-agent/*.lock
+
+# Log files
+/coins-agent/npm-debug.log*
+/coins-agent/yarn-debug.log*
+/coins-agent/yarn-error.log*
+/coins-agent/pnpm-debug.log*
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+report
+/coins-agent/.idea
+/coins-agent/.vscode
+/coin-agent/*.suo
+/coin-agent/*.ntvs*
+/coin-agent/*.njsproj
+/coin-agent/*.sln
+/coin-agent/*.sw?
+/coins-agent/report
+
