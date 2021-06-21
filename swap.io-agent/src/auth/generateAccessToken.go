@@ -1,24 +1,20 @@
 package auth
 
 import (
-	"github.com/dgrijalva/jwt-go"
-	"math"
+	"github.com/lestrrat-go/jwx/jwa"
+	"github.com/lestrrat-go/jwx/jwt"
 	"os"
-	"strconv"
-	"swap.io-agent/src/models"
 )
 
 func GenerateAccessToken(id int) (string,error) {
-	tk := &models.Token{}
-	tk.Id = strconv.Itoa(id)
-	tk.ExpiresAt = math.MaxInt64
+	token := jwt.New()
+	token.Set("id", id)
 
-	token := jwt.NewWithClaims(
-		jwt.GetSigningMethod("HS256"),
-		tk,
-	)
-
-	return token.SignedString(
+	key, err := jwt.Sign(
+		token,
+		jwa.HS256,
 		[]byte(os.Getenv("TOKEN_SECRET")),
 	)
+
+	return string(key), err
 }

@@ -1,29 +1,28 @@
 package auth
 
 import (
-	"github.com/dgrijalva/jwt-go"
+	"github.com/lestrrat-go/jwx/jwa"
+	"github.com/lestrrat-go/jwx/jwt"
 	"os"
-	"strconv"
-	"swap.io-agent/src/models"
 )
 
 func DecodeAccessToken(tokenString string) (int,bool) {
-	tk := &models.Token{}
-	token, err := jwt.ParseWithClaims(
-		tokenString,
-		tk,
-		func(token *jwt.Token) (interface{}, error) {
-			return []byte(os.Getenv("TOKEN_SECRET")), nil
-		},
+	info, err := jwt.Parse(
+		[]byte(tokenString),
+		jwt.WithVerify(
+			jwa.HS256,
+			[]byte(os.Getenv("TOKEN_SECRET")),
+		),
 	)
-	if err != nil || !token.Valid {
-		return 0, true
-	}
-
-	id, err := strconv.Atoi(tk.Id)
 	if err != nil {
-		return 0, true
+		return -1, true
 	}
 
-	return id, false
+	if id, ok := info.Get("id"); ok {
+		if idF, ok := id.(float64); ok {
+			return int(idF), false
+		}
+	}
+
+	return -1, true
 }

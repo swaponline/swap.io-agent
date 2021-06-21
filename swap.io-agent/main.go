@@ -39,7 +39,6 @@ func main() {
 	}()
 	defer server.Close()
 
-	http.Handle("/socket.io/", server)
 	http.Handle("/", http.FileServer(http.Dir("static")))
 	http.HandleFunc("/getToken", func(
 		writer http.ResponseWriter,
@@ -49,6 +48,7 @@ func main() {
 			io.WriteString(writer, token)
 		}
 	})
+	http.Handle("/socket.io/", server)
 
 	log.Printf("Serving at localhost:%s...", os.Getenv("PORT"))
 	log.Fatal(
