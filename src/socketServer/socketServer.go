@@ -17,8 +17,8 @@ type SocketServer struct {
 func InitializeServer(config Config) *SocketServer {
 	socketServer := SocketServer{
 		io: socketio.NewServer(&engineio.Options{
-			Transports: DefaultTransport,
-			RequestChecker: auth.AuthenticationSocketConnect,
+			Transports:     DefaultTransport,
+			RequestChecker: AuthenticationSocketConnect,
 		}),
 	}
 

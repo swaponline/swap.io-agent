@@ -1,8 +1,9 @@
-package auth
+package socketServer
 
 import (
 	"errors"
 	"net/http"
+	"swap.io-agent/src/auth"
 )
 
 func AuthenticationSocketConnect (request *http.Request) (http.Header, error) {
@@ -10,7 +11,7 @@ func AuthenticationSocketConnect (request *http.Request) (http.Header, error) {
 	if len(tokenInfo) == 0 {
 		return nil, errors.New("not exist token")
 	}
-	_, err := DecodeAccessToken(tokenInfo[0])
+	_, err := auth.DecodeAccessToken(tokenInfo[0])
 	if err {
 		return nil, errors.New("not valid token")
 	}
