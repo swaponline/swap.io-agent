@@ -9,13 +9,26 @@ import (
 	"net/http"
 	"os"
 	"swap.io-agent/src/auth"
+	"swap.io-agent/src/redisStore"
 	"swap.io-agent/src/runApp"
+	"swap.io-agent/src/serviceRegistry"
 	"swap.io-agent/src/socket"
 )
 
 func main() {
 	err := runApp.LoadConfig()
 	if err != nil {panic(err)}
+
+	registry := serviceRegistry.NewServiceRegistry()
+
+	db, err := redisStore.InitializeDB()
+	if err != nil {
+		log.Panicf("redisStore not initialize, err: %v", err)
+	}
+	err = registry.RegisterService(&db)
+	if err != nil {
+		log.Panicf(err.Error())
+	}
 
 	server := socketio.NewServer(&engineio.Options{
 		Transports: socket.DefaultTransport,
