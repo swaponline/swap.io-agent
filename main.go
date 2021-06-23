@@ -1,73 +1,50 @@
 package main
 
 import (
-	"fmt"
-	socketio "github.com/googollee/go-socket.io"
-	"github.com/googollee/go-socket.io/engineio"
-	"io"
 	"log"
-	"net/http"
-	"os"
-	"swap.io-agent/src/auth"
+	"swap.io-agent/src/configLoader"
+	"swap.io-agent/src/httpHandler"
+	"swap.io-agent/src/httpServer"
 	"swap.io-agent/src/redisStore"
-	"swap.io-agent/src/runApp"
 	"swap.io-agent/src/serviceRegistry"
-	"swap.io-agent/src/socket"
+	"swap.io-agent/src/socketServer"
 )
 
 func main() {
-	err := runApp.LoadConfig()
-	if err != nil {panic(err)}
-
 	registry := serviceRegistry.NewServiceRegistry()
+
+	err := configLoader.InitializeConfig()
+	if err != nil {panic(err)}
 
 	db, err := redisStore.InitializeDB()
 	if err != nil {
 		log.Panicf("redisStore not initialize, err: %v", err)
 	}
+
 	err = registry.RegisterService(&db)
 	if err != nil {
-		log.Panicf(err.Error())
+		log.Panicln(err.Error())
 	}
 
-	server := socketio.NewServer(&engineio.Options{
-		Transports: socket.DefaultTransport,
-		RequestChecker: auth.AuthenticationSocketConnect,
-	})
+	socketServerEntity := socketServer.InitializeServer()
+	err = registry.RegisterService(socketServerEntity)
+	if err != nil {
+		log.Panicln(err.Error())
+	}
 
-	server.OnConnect("/", func(s socketio.Conn) error {
-		url := s.URL()
-		id, _ := auth.DecodeAccessToken(
-			url.Query().Get("token"),
-		)
-		log.Printf("connect: %v", id)
-		return nil
-	})
-	server.OnDisconnect("/", func(s socketio.Conn, reason string) {})
+	httpServerEntity := httpServer.InitializeServer()
+	err = registry.RegisterService(httpServerEntity)
+	if err != nil {
+		log.Panicln(err.Error())
+	}
 
-	go func() {
-		if err := server.Serve(); err != nil {
-			log.Fatalf("socketio listen error: %s\n", err)
-		}
-	}()
-	defer server.Close()
+	httpHandlerEntity := httpHandler.InitializeServer()
+	err = registry.RegisterService(httpHandlerEntity)
+	if err != nil {
+		log.Panicln(err.Error())
+	}
 
-	http.Handle("/", http.FileServer(http.Dir("static")))
-	http.HandleFunc("/getToken", func(
-		writer http.ResponseWriter,
-		request *http.Request,
-	) {
-		if token, err := auth.GenerateAccessToken(0); err == nil {
-			io.WriteString(writer, token)
-		}
-	})
-	http.Handle("/socket.io/", server)
+	registry.StartAll()
 
-	log.Printf("Serving at localhost:%s...", os.Getenv("PORT"))
-	log.Fatal(
-		http.ListenAndServe(
-			fmt.Sprintf(":%s", os.Getenv("PORT")),
-			nil,
-		),
-	)
+	<-make(chan struct{})
 }
