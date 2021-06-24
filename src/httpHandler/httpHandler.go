@@ -21,6 +21,8 @@ func InitializeServer() *HttpHandler {
 }
 
 func (httpHandler *HttpHandler) Start() {
+	log.Printf("Http handle:%v", os.Getenv("PORT"))
+
 	err := httpHandler.server.ListenAndServe()
 	if err != nil {
 		log.Panicln(err)
