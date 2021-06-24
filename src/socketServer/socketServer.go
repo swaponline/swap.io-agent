@@ -8,11 +8,13 @@ import (
 	"swap.io-agent/src/auth"
 )
 
+type Config struct {
+	db socketServerDb
+}
 type SocketServer struct {
 	io *socketio.Server
 }
-
-func InitializeServer() *SocketServer {
+func InitializeServer(config Config) *SocketServer {
 	socketServer := SocketServer{
 		io: socketio.NewServer(&engineio.Options{
 			Transports: DefaultTransport,
@@ -25,10 +27,19 @@ func InitializeServer() *SocketServer {
 		id, _ := auth.DecodeAccessToken(
 			url.Query().Get("token"),
 		)
-		log.Printf("connect: %v", id)
-		return nil
+
+		if err := config.db.AddUser(id); err == nil {
+			s.SetContext(id)
+
+			log.Printf("connect: %v", id)
+			return nil
+		} else {
+			return err
+		}
 	})
-	socketServer.io.OnDisconnect("/", func(s socketio.Conn, reason string) {})
+	socketServer.io.OnDisconnect("/", func(s socketio.Conn, reason string) {
+		_ = config.db.RemoveUser(s.Context().(int))
+	})
 
 	go func() {
 		if err := socketServer.io.Serve(); err != nil {
