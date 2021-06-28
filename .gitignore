@@ -3,4 +3,5 @@
 .env.development
 .env.production
 
-/blockchainIndexes/ethereum/*
+/blockchainIndexes
+swap.io-agent
