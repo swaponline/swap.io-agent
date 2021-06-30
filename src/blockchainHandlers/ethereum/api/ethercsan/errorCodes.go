@@ -1,9 +1,9 @@
 package ethercsan
 
 const (
-	Success             = iota
-	NotExistBlock
-	RequestsLimitError
+	RequestSuccess             = iota
+	NotExistBlockError
+	RequestLimitError
 	RequestError
 	ParseBodyError
 	ParseIndexError

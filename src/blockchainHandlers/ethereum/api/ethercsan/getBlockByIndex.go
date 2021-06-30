@@ -3,11 +3,13 @@ package ethercsan
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 )
 
-func GetBlockByIndex(apiKey string, index int) (*block,int) {
+func GetBlockByIndex(apiKey string, index int) (*Block,int) {
+	log.Println("0x"+strconv.FormatInt(int64(index), 16))
 	res, err := http.Get(
 		fmt.Sprintf(
 			"https://api.etherscan.io/api?tag=%v&boolean=true&apikey=%v&action=eth_getBlockByNumber&module=proxy",
@@ -17,10 +19,12 @@ func GetBlockByIndex(apiKey string, index int) (*block,int) {
 	)
 	if err != nil {return nil, RequestError}
 
-	var blockInfo blockRes
-	if err = json.NewDecoder(res.Body).Decode(&blockInfo); err != nil {
+	var reqData blockRes
+	// todo add switch check time limit error and parse error
+	if err = json.NewDecoder(res.Body).Decode(&reqData); err != nil {
+		log.Println(err)
 		return nil, ParseBodyError
 	}
 
-	return &blockInfo.Result, Success
+	return &reqData.Result, RequestSuccess
 }

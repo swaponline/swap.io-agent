@@ -29,5 +29,5 @@ func GetCurrentIndexBlock(apiKey string) (int,int) {
 	)
 	if err != nil {return 0, ParseIndexError}
 
-	return int(currentBlockId), Success
+	return int(currentBlockId), RequestSuccess
 }

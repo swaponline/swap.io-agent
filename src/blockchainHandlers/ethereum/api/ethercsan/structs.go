@@ -7,9 +7,9 @@ type currentBlockIndexRes struct {
 type blockRes struct {
 	Jsonrpc string `json:"jsonrpc"`
 	Id      int    `json:"id"`
-	Result  block `json:"result"`
+	Result  Block `json:"result"`
 }
-type block struct {
+type Block struct {
 	Difficulty      string `json:"difficulty"`
 	ExtraData       string `json:"extraData"`
 	GasLimit        string `json:"gasLimit"`
@@ -27,11 +27,11 @@ type block struct {
 	StateRoot       string `json:"stateRoot"`
 	Timestamp       string `json:"timestamp"`
 	TotalDifficulty string `json:"totalDifficulty"`
-	Transactions    []blockTransaction
+	Transactions    []BlockTransaction
 	TransactionsRoot string        `json:"transactionsRoot"`
 	Uncles           []interface{} `json:"uncles"`
 }
-type blockTransaction struct {
+type BlockTransaction struct {
 	BlockHash        string `json:"blockHash"`
 	BlockNumber      string `json:"blockNumber"`
 	From             string `json:"from"`

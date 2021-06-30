@@ -25,14 +25,18 @@ func InitializeIndexer() *BlockchainIndexer {
 	}
 
 	var lastBlock int
-	if lastBlockStr, err := db.Get(lastBlockKey, nil); err == nil {
-		lastBlockStrNum, err := strconv.Atoi(string(lastBlockStr))
-		if err != nil {log.Panicln("num last block not parsed")}
-		lastBlock = lastBlockStrNum
-	} else {
-		err = db.Put(lastBlockKey, []byte("0") , nil)
-		if err != nil {log.Panicln("not set value to lastBlockKey")}
-		lastBlock = 0
+	switch lastBlockStr, err := db.Get(lastBlockKey, nil); err {
+		case nil: {
+			lastBlockStrNum, err := strconv.Atoi(string(lastBlockStr))
+			if err != nil {log.Panicln("num last block not parsed")}
+			lastBlock = lastBlockStrNum
+		}
+		case leveldb.ErrNotFound: {
+			err = db.Put(lastBlockKey, []byte("0") , nil)
+			if err != nil {log.Panicln("not set value to lastBlockKey")}
+			lastBlock = -1
+		}
+		default: log.Panicln("error then get last block index")
 	}
 
 	return &BlockchainIndexer{
