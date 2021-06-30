@@ -17,7 +17,7 @@ func GetCurrentIndexBlock(apiKey string) (int,int) {
 	)
 	if err != nil {return 0, RequestError}
 
-	var currentBlockInfo currentBlockIndexRes
+	var currentBlockInfo currentBlockIndexResponse
 	if err = json.NewDecoder(res.Body).Decode(&currentBlockInfo); err != nil {
 		return 0, ParseBodyError
 	}

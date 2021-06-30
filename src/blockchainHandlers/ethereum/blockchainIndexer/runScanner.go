@@ -10,7 +10,6 @@ import (
 	"time"
 )
 
-
 func (indexer *BlockchainIndexer) RunScanner() {
 	isSynchronize := false
 	requestsStepLen := 5
@@ -105,6 +104,10 @@ func (indexer *BlockchainIndexer) RunScanner() {
 		}
 		<-time.After(time.Second * 7)
 	}
+}
+
+func setAllSpend(transactions []ethercsan.BlockTransaction) []ethercsan.BlockTransaction {
+	return transactions
 }
 
 func indexingTransactions(

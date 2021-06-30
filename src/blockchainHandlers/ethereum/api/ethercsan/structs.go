@@ -5,7 +5,36 @@ type apiError struct {
 	Message string `json:"message"`
 	Result  string `json:"result"`
 }
-type currentBlockIndexRes struct {
+type allSpendTransactionResponse struct {
+	Jsonrpc string `json:"jsonrpc"`
+	Id      int    `json:"id"`
+	Result  struct {
+		BlockHash         string      `json:"blockHash"`
+		BlockNumber       string      `json:"blockNumber"`
+		ContractAddress   string      `json:"contractAddress"`
+		CumulativeGasUsed string      `json:"cumulativeGasUsed"`
+		From              string      `json:"from"`
+		GasUsed           string      `json:"gasUsed"`
+		Logs              []struct {
+			Address          string   `json:"address"`
+			Topics           []string `json:"topics"`
+			Data             string   `json:"data"`
+			BlockNumber      string   `json:"blockNumber"`
+			TransactionHash  string   `json:"transactionHash"`
+			TransactionIndex string   `json:"transactionIndex"`
+			BlockHash        string   `json:"blockHash"`
+			LogIndex         string   `json:"logIndex"`
+			Removed          bool     `json:"removed"`
+		} `json:"logs"`
+		LogsBloom        string `json:"logsBloom"`
+		Status           string `json:"status"`
+		To               string `json:"to"`
+		TransactionHash  string `json:"transactionHash"`
+		TransactionIndex string `json:"transactionIndex"`
+		Type             string `json:"type"`
+	} `json:"result"`
+}
+type currentBlockIndexResponse struct {
 	Id int `json:"id"`
 	Result string `json:"result"`
 }
@@ -52,4 +81,5 @@ type BlockTransaction struct {
 	V                string `json:"v"`
 	R                string `json:"r"`
 	S                string `json:"s"`
+	AllSpendAddresses []string
 }
