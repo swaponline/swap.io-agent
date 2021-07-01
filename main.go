@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	ethereum "swap.io-agent/src/blockchainHandlers/ethereum/blockchainIndexer"
 	"swap.io-agent/src/configLoader"
 	"swap.io-agent/src/httpHandler"
 	"swap.io-agent/src/httpServer"
@@ -15,6 +16,8 @@ func main() {
 
 	err := configLoader.InitializeConfig()
 	if err != nil {panic(err)}
+
+	ethereum.InitializeIndexer().RunScanner()
 
 	db, err := redisStore.InitializeDB()
 	if err != nil {

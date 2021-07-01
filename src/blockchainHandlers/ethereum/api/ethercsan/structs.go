@@ -1,10 +1,15 @@
 package ethercsan
 
+type apiError struct {
+	Status  string `json:"status"`
+	Message string `json:"message"`
+	Result  string `json:"result"`
+}
 type currentBlockIndexRes struct {
 	Id int `json:"id"`
 	Result string `json:"result"`
 }
-type blockRes struct {
+type blockResponse struct {
 	Jsonrpc string `json:"jsonrpc"`
 	Id      int    `json:"id"`
 	Result  Block `json:"result"`

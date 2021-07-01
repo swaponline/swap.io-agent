@@ -34,7 +34,7 @@ func InitializeIndexer() *BlockchainIndexer {
 		case leveldb.ErrNotFound: {
 			err = db.Put(lastBlockKey, []byte("0") , nil)
 			if err != nil {log.Panicln("not set value to lastBlockKey")}
-			lastBlock = -1
+			lastBlock = 12742130
 		}
 		default: log.Panicln("error then get last block index")
 	}
