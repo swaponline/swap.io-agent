@@ -10,10 +10,14 @@ import (
 
 const transferType = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
 
-func AllSpendTransaction(apiKey string, transactionHash string) ([]string, int) {
+func AllSpendAddressesTransaction(
+	apiKey string,
+	transaction *BlockTransaction,
+) ([]string, int) {
 	res, err := http.Get(
 		fmt.Sprintf(
-			"https://api.etherscan.io/api?module=proxy&action=eth_getTransactionReceipt&apikey=%v",
+			"https://api.etherscan.io/api?module=proxy&action=eth_getTransactionReceipt&txhash=%v&apikey=%v",
+			transaction.Hash,
 			apiKey,
 		),
 	)
@@ -27,6 +31,8 @@ func AllSpendTransaction(apiKey string, transactionHash string) ([]string, int) 
 	}
 
 	buf := Set.New()
+	buf.Add(transaction.From)
+	buf.Add(transaction.To)
 	for _, value := range resBody.Result.Logs {
 		if len(value.Topics) > 0 && value.Topics[0] == transferType {
 			buf.Add(strings.Replace(value.Topics[1], "000000000000000000000000", "", 1))

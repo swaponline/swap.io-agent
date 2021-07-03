@@ -41,6 +41,18 @@ func (indexer *BlockchainIndexer) RunScanner() {
 				}
 
 				lockerChange.Lock()
+				<-time.After(time.Second)
+				err = setAllSpendAddressesForTransactions(
+					indexer.apiKey,
+					block.Transactions,
+					requestsStepLen,
+				)
+				if err != ethercsan.RequestSuccess {
+					log.Panicln(
+						"not indexing all spend transactions(contracts) errors",
+						err,
+					)
+				}
 				indexingTransactions(&buf, block.Transactions)
 				if lastGetBlockIndex < blockIndex {
 					lastGetBlockIndex = blockIndex
@@ -84,6 +96,16 @@ func (indexer *BlockchainIndexer) RunScanner() {
 			indexer.apiKey,
 			nextBlock,
 		)
+		err = setAllSpendAddressesForTransactions(
+			indexer.apiKey,
+			block.Transactions,
+			requestsStepLen,
+		)
+		if err != ethercsan.RequestSuccess {
+			log.Panicf(
+				"not indexing all spend transactions(contracts) errors",
+			)
+		}
 		switch err {
 			case ethercsan.RequestSuccess: {
 				indexedTransactions := make(map[string][]string)
@@ -106,8 +128,42 @@ func (indexer *BlockchainIndexer) RunScanner() {
 	}
 }
 
-func setAllSpend(transactions []ethercsan.BlockTransaction) []ethercsan.BlockTransaction {
-	return transactions
+func setAllSpendAddressesForTransactions(
+	apiKey string,
+	transactions []ethercsan.BlockTransaction,
+	requestLimitSecond int,
+) int {
+	err := ethercsan.RequestSuccess
+	for t:=0; t<len(transactions); t+=requestLimitSecond {
+		wg := new(sync.WaitGroup)
+		steps := requestLimitSecond
+		if len(transactions) - t < requestLimitSecond {
+			steps = len(transactions) - t
+		}
+		wg.Add(steps)
+		for r:=0; r<steps; r++ {
+			go func(index int) {
+				addresses, reqErr := ethercsan.AllSpendAddressesTransaction(
+					apiKey,
+					&transactions[index],
+				)
+				if reqErr != ethercsan.RequestSuccess {
+					err = reqErr
+				}
+
+				transactions[index].AllSpendAddresses = addresses
+				wg.Done()
+			}(t+r)
+		}
+		wg.Wait()
+		<-time.After(time.Second)
+	}
+
+	if err != ethercsan.RequestSuccess {
+		return err
+	}
+
+	return ethercsan.RequestSuccess
 }
 
 func indexingTransactions(
@@ -117,8 +173,9 @@ func indexingTransactions(
 	// address -> transactions
 	bufValue := *buf
 	for _, transaction := range transactions {
-		bufValue[transaction.From] = append(bufValue[transaction.From], transaction.Hash)
-		bufValue[transaction.To]   = append(bufValue[transaction.To], transaction.Hash)
+		for _, address := range transaction.AllSpendAddresses {
+			bufValue[address] = append(bufValue[address], transaction.Hash)
+		}
 	}
 }
 
