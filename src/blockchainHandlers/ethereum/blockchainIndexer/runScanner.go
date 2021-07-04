@@ -12,7 +12,7 @@ import (
 
 func (indexer *BlockchainIndexer) RunScanner() {
 	isSynchronize := false
-	requestsStepLen := 5
+	requestsStepLen := 4
 	for {
 		waits := new(sync.WaitGroup)
 		waits.Add(requestsStepLen)

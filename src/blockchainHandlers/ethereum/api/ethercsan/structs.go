@@ -5,7 +5,7 @@ type apiError struct {
 	Message string `json:"message"`
 	Result  string `json:"result"`
 }
-type allSpendTransactionResponse struct {
+type GetTransactionLogsResponse struct {
 	Jsonrpc string `json:"jsonrpc"`
 	Id      int    `json:"id"`
 	Result  struct {
