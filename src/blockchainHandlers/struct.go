@@ -25,4 +25,6 @@ type Transaction struct {
 			Value  int64  `json:"value"`
 		} `json:"entries"`
 	} `json:"journal"`
+
+	AllSpendAddresses []string
 }
