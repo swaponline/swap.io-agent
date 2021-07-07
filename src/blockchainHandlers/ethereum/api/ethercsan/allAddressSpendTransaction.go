@@ -1,7 +1,9 @@
 package ethercsan
 
 import (
+	"strconv"
 	"strings"
+	"swap.io-agent/src/blockchainHandlers"
 	"swap.io-agent/src/common/Set"
 )
 
@@ -11,18 +13,23 @@ func GetAllSpendAddressFromLogs(
 	logs []TransactionLog,
 	transaction *BlockTransaction,
 	miner string,
-) []string {
+) ([]string, blockchainHandlers.TransactionJournal) {
+	journal := blockchainHandlers.TransactionJournal{}
 	buf := Set.New()
 	buf.Add(miner)
 	buf.Add(transaction.From)
 	buf.Add(transaction.To)
 	for _, value := range logs {
 		if len(value.Topics) == 3 && value.Topics[0] == TransferType {
-			buf.Add(strings.Replace(value.Topics[1], "000000000000000000000000", "", 1))
-			buf.Add(strings.Replace(value.Topics[2], "000000000000000000000000", "", 1))
+			fromTransfer := strings.Replace(value.Topics[1], "000000000000000000000000", "", 1)
+			toTransfer   := strings.Replace(value.Topics[2], "000000000000000000000000", "", 1)
+			value, err   := strconv.ParseInt(value.Data, 16, 64)
+
+			buf.Add(fromTransfer)
+			buf.Add(toTransfer)
 		}
 	}
-	return buf.Keys()
+	return buf.Keys(), journal
 }
 
 func AllSpendAddressesTransaction(

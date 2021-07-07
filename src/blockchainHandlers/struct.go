@@ -14,17 +14,20 @@ type Transaction struct {
 	GasPrice         int  `json:"gas_price"`
 	Timestamp        int    `json:"timestamp"`
 	BlockMiner       string `json:"block_miner"`
-	Journal          [] struct {
-		Asset struct{
-			Symbol   string `json:"symbol"`
-			Name     string `json:"name"`
-			Decimals int    `json:"decimals"`
-		} `json:"asset"`
-		Entries []struct {
-			Wallet string `json:"wallet"`
-			Value  int64  `json:"value"`
-		} `json:"entries"`
-	} `json:"journal"`
-
+	Journal          []SpendsInfo `json:"journal"`
 	AllSpendAddresses []string
+}
+type SpendsInfo struct {
+	Asset     SpendsAsset `json:"asset"`
+	Entries []Spend `json:"entries"`
+}
+type SpendsAsset struct {
+	Id      string `json:"id"`
+	Symbol  string `json:"symbol"`
+	Address string `json:"address"`
+	Network string `json:"network"`
+}
+type Spend struct {
+	Wallet string `json:"wallet"`
+	Value  int64  `json:"value"`
 }

@@ -84,3 +84,8 @@ type TransactionLog struct {
 	LogIndex         string   `json:"logIndex"`
 	Removed          bool     `json:"removed"`
 }
+type TransactionTransfer struct {
+	from string
+	to string
+	value int
+}
