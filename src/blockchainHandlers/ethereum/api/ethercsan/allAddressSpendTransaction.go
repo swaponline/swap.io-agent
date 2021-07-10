@@ -1,33 +1,39 @@
 package ethercsan
 
 import (
+	"strconv"
 	"strings"
-	"swap.io-agent/src/common/Set"
+	"swap.io-agent/src/blockchainHandlers"
+	"swap.io-agent/src/blockchainHandlers/journal"
 )
 
 const TransferType = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
 
-func GetAllSpendAddressFromLogs(
+func AddSpendsFromLogsToJournal(
 	logs []TransactionLog,
-	transaction *BlockTransaction,
-	miner string,
-) []string {
-	//journal := journal.New()
-	buf := Set.New()
-	buf.Add(miner)
-	buf.Add(transaction.From)
-	buf.Add(transaction.To)
+	journal *journal.Journal,
+) error {
 	for _, value := range logs {
 		if len(value.Topics) == 3 && value.Topics[0] == TransferType {
 			fromTransfer := strings.Replace(value.Topics[1], "000000000000000000000000", "", 1)
 			toTransfer   := strings.Replace(value.Topics[2], "000000000000000000000000", "", 1)
-			//value, err   := strconv.ParseInt(value.Data, 16, 64)
+			valueTransfer, err := strconv.ParseInt(value.Data, 16, 64)
+			if err != nil {
+				return err
+			}
 
-			buf.Add(fromTransfer)
-			buf.Add(toTransfer)
+			journal.Add(value.Address, blockchainHandlers.Spend{
+				Wallet: fromTransfer,
+				Value: -valueTransfer,
+			})
+			journal.Add(value.Address, blockchainHandlers.Spend{
+				Wallet: toTransfer,
+				Value: valueTransfer,
+			})
 		}
 	}
-	return buf.Keys() // buf.Keys(), journal
+
+	return nil
 }
 
 func AllSpendAddressesTransaction(

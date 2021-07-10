@@ -6,7 +6,10 @@ import (
 	"strconv"
 	"swap.io-agent/src/blockchainHandlers"
 	"swap.io-agent/src/blockchainHandlers/ethereum/api/ethercsan"
+	journal "swap.io-agent/src/blockchainHandlers/journal"
 )
+
+const ETH = "ETH"
 
 func FormatTransaction(
 	apiKey string,
@@ -87,6 +90,32 @@ func FormatTransaction(
 		return nil, err
 	}
 
+	transactionJournal := journal.New("ethereum")
+	transactionJournal.Add(ETH, blockchainHandlers.Spend{
+		Wallet: blockTransaction.From,
+		Value: -blockTransactionValue,
+	})
+	transactionJournal.Add(ETH, blockchainHandlers.Spend{
+		Wallet: blockTransaction.From,
+		Value: -(blockTransactionGasPrice * blockTransactionGasUsed),
+	})
+	transactionJournal.Add(ETH, blockchainHandlers.Spend{
+		Wallet: block.Miner,
+		Value: blockTransactionGasPrice * blockTransactionGasUsed,
+	})
+	transactionJournal.Add(ETH, blockchainHandlers.Spend{
+		Wallet: blockTransaction.To,
+		Value: blockTransactionValue,
+	})
+
+	err = ethercsan.AddSpendsFromLogsToJournal(
+		transactionLogs.Result.Logs,
+		transactionJournal,
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	transaction := blockchainHandlers.Transaction{
 		Hash: blockTransaction.Hash,
 		From: blockTransaction.From,
@@ -101,11 +130,8 @@ func FormatTransaction(
 		BlockNumber: int(blockTransactionBlock),
 		BlockMiner: block.Miner,
 		Nonce: int(blockTransactionNonce),
-		AllSpendAddresses: ethercsan.GetAllSpendAddressFromLogs(
-			transactionLogs.Result.Logs,
-			blockTransaction,
-			block.Miner,
-		),
+		AllSpendAddresses: transactionJournal.GetSpendsAddress(),
+		Journal: transactionJournal.GetSpends(),
 	}
 
 	return &transaction, nil
