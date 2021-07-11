@@ -2,7 +2,7 @@ package main
 
 import (
 	"log"
-	ethereum "swap.io-agent/src/blockchainHandlers/ethereum/blockchainIndexer"
+	ethereum "swap.io-agent/src/blockchain/ethereum/blockchainIndexer"
 	"swap.io-agent/src/configLoader"
 	"swap.io-agent/src/httpHandler"
 	"swap.io-agent/src/httpServer"
