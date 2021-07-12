@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func GenerateAccessToken(id int) (string,error) {
+func GenerateAccessToken(id string) (string,error) {
 	token := jwt.New()
 	token.Set("id", id)
 

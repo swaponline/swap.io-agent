@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func DecodeAccessToken(tokenString string) (int,bool) {
+func DecodeAccessToken(tokenString string) (string,bool) {
 	info, err := jwt.Parse(
 		[]byte(tokenString),
 		jwt.WithVerify(
@@ -15,14 +15,14 @@ func DecodeAccessToken(tokenString string) (int,bool) {
 		),
 	)
 	if err != nil {
-		return -1, true
+		return "-1", true
 	}
 
 	if id, ok := info.Get("id"); ok {
-		if idF, ok := id.(float64); ok {
-			return int(idF), false
+		if idStr, ok := id.(string); ok {
+			return idStr, false
 		}
 	}
 
-	return -1, true
+	return "-1", true
 }

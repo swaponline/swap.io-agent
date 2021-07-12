@@ -9,9 +9,14 @@ func New() Set {
 		buf: make(map[string]struct{}),
 	}
 }
-
 func (s *Set) Add(key string) *Set {
 	s.buf[key] = struct {}{}
+	return s
+}
+func (s *Set) Adds(keys []string) *Set {
+	for _, key := range keys {
+		s.Add(key)
+	}
 	return s
 }
 func (s *Set) Delete(key string) *Set {

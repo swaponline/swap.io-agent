@@ -27,18 +27,12 @@ func InitializeServer(config Config) *SocketServer {
 		id, _ := auth.DecodeAccessToken(
 			url.Query().Get("token"),
 		)
+		log.Printf("connect: %v", id)
 
-		if err := config.db.AddUser(id); err == nil {
-			s.SetContext(id)
-
-			log.Printf("connect: %v", id)
-			return nil
-		} else {
-			return err
-		}
+		return nil
 	})
 	socketServer.io.OnDisconnect("/", func(s socketio.Conn, reason string) {
-		_ = config.db.RemoveUser(s.Context().(int))
+		log.Printf("disconnect: %v", s.Context())
 	})
 
 	go func() {

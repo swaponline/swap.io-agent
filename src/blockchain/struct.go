@@ -31,3 +31,7 @@ type Spend struct {
 	Wallet string `json:"wallet"`
 	Value  string `json:"value"`
 }
+type TransactionPipeData struct {
+	Subscribers []string
+	Transaction Transaction
+}

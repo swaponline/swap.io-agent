@@ -16,7 +16,7 @@ func InitializeServer() *HttpServer {
 		writer http.ResponseWriter,
 		request *http.Request,
 	) {
-		if token, err := auth.GenerateAccessToken(0); err == nil {
+		if token, err := auth.GenerateAccessToken("0"); err == nil {
 			io.WriteString(writer, token)
 		}
 	})
