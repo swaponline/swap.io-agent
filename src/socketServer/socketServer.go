@@ -8,8 +8,12 @@ import (
 	"swap.io-agent/src/auth"
 )
 
+type subscribersDb interface {
+	ClearAllUserSubscriptions(userId string) error
+}
+
 type Config struct {
-	db socketServerDb
+	db subscribersDb
 }
 type SocketServer struct {
 	io *socketio.Server
@@ -24,14 +28,21 @@ func InitializeServer(config Config) *SocketServer {
 
 	socketServer.io.OnConnect("/", func(s socketio.Conn) error {
 		url := s.URL()
-		id, _ := auth.DecodeAccessToken(
+		userId, _ := auth.DecodeAccessToken(
 			url.Query().Get("token"),
 		)
-		log.Printf("connect: %v", id)
+		s.SetContext(userId)
+		log.Printf("connect: %v", userId)
 
 		return nil
 	})
 	socketServer.io.OnDisconnect("/", func(s socketio.Conn, reason string) {
+		userId := s.Context()
+		err := config.db.ClearAllUserSubscriptions(userId.(string))
+		log.Println(
+			err, "then delete all user subscribe",
+			"user:", s.Context(),
+		)
 		log.Printf("disconnect: %v", s.Context())
 	})
 

@@ -11,12 +11,12 @@ func (db *RedisDb) GetSubscribersFromAddresses(addresses []string) []string {
 	uniqueUsers := Set.New()
 	for _, address := range addresses {
 		uniqueUsers.Adds(
-			db.GetAddressSubscriber(address),
+			db.GetAddressSubscribers(address),
 		)
 	}
 	return uniqueUsers.Keys()
 }
-func (db *RedisDb) GetAddressSubscriber(address string) []string {
+func (db *RedisDb) GetAddressSubscribers(address string) []string {
 	return db.client.SMembers(ctx, address).Val()
 }
 func (db *RedisDb) SubscribeUserToAddress(userId string, address string) error {
@@ -31,5 +31,15 @@ func (db *RedisDb) SubscribeUserToAddress(userId string, address string) error {
 		return isAddAddressUser
 	}
 
+	return nil
+}
+func (db *RedisDb) ClearAllUserSubscriptions(userId string) error {
+	subscriptions := db.client.SMembers(ctx, userId).Val()
+	for _, address := range subscriptions {
+		err := db.client.SRem(ctx, address, userId).Err()
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
