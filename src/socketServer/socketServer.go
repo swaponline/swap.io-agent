@@ -8,12 +8,12 @@ import (
 	"swap.io-agent/src/auth"
 )
 
-type subscribersDb interface {
+type subscribersStore interface {
 	ClearAllUserSubscriptions(userId string) error
 }
 
 type Config struct {
-	db subscribersDb
+	db subscribersStore
 }
 type SocketServer struct {
 	io *socketio.Server
