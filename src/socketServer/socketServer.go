@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"swap.io-agent/src/auth"
+	"swap.io-agent/src/blockchain"
 )
 
 type subscribersStore interface {
@@ -14,7 +15,9 @@ type subscribersStore interface {
 
 type Config struct {
 	db subscribersStore
+	onNotifyUsers chan blockchain.TransactionPipeData
 }
+
 type SocketServer struct {
 	io *socketio.Server
 }
@@ -26,11 +29,13 @@ func InitializeServer(config Config) *SocketServer {
 		}),
 	}
 
+	connections := make(map[string]socketio.Conn)
 	socketServer.io.OnConnect("/", func(s socketio.Conn) error {
 		url := s.URL()
 		userId, _ := auth.DecodeAccessToken(
 			url.Query().Get("token"),
 		)
+		connections[userId] = s
 		s.SetContext(userId)
 		log.Printf("connect: %v", userId)
 
@@ -38,13 +43,25 @@ func InitializeServer(config Config) *SocketServer {
 	})
 	socketServer.io.OnDisconnect("/", func(s socketio.Conn, reason string) {
 		userId := s.Context()
+		delete(connections, userId.(string))
 		err := config.db.ClearAllUserSubscriptions(userId.(string))
 		log.Println(
 			err, "then delete all user subscribe",
 			"user:", s.Context(),
 		)
+
 		log.Printf("disconnect: %v", s.Context())
 	})
+	go func() {
+		for {
+			info := <-config.onNotifyUsers
+			for _, userId := range info.Subscribers {
+				if _, ok := connections[userId]; ok {
+					//emit
+				}
+			}
+		}
+	}()
 
 	go func() {
 		if err := socketServer.io.Serve(); err != nil {
