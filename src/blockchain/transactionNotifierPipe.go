@@ -1,29 +1,23 @@
-package ethereum
-
-import "swap.io-agent/src/blockchain"
-
-type subscribersStore interface {
-	GetSubscribersFromAddresses(addresses []string) []string
-}
+package blockchain
 
 type TransactionNotifierPipe struct {
-	input chan blockchain.Transaction
-	Out   chan blockchain.TransactionPipeData
+	input            chan Transaction
+	Out              chan TransactionPipeData
 	subscribersStore subscribersStore
-	stop  chan bool
+	stop             chan bool
 }
 
 type TransactionNotifierPipeConfig struct {
-	Input chan blockchain.Transaction
+	Input            chan Transaction
 	SubscribersStore subscribersStore
 }
 
-func TransactionNotifierPipeInitialize(
+func InitializeTransactionNotifierPipe(
 	config TransactionNotifierPipeConfig,
 ) TransactionNotifierPipe {
 	return TransactionNotifierPipe{
 		input: config.Input,
-		Out: make(chan blockchain.TransactionPipeData),
+		Out: make(chan TransactionPipeData),
 		subscribersStore: config.SubscribersStore,
 	}
 }
@@ -36,7 +30,7 @@ func (tnp *TransactionNotifierPipe) Start() {
 					transaction.AllSpendAddresses,
 				)
 				if len(subscribers) > 0 {
-					tnp.Out <- blockchain.TransactionPipeData{
+					tnp.Out <- TransactionPipeData{
 						Subscribers: subscribers,
 						Transaction: transaction,
 					}
