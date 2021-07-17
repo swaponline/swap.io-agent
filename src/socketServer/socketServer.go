@@ -9,12 +9,8 @@ import (
 	"swap.io-agent/src/blockchain"
 )
 
-type subscribersStore interface {
-	ClearAllUserSubscriptions(userId string) error
-}
-
 type Config struct {
-	db subscribersStore
+	subscribeManager   blockchain.SubscribeManager
 	onNotifyUsers chan blockchain.TransactionPipeData
 }
 
@@ -41,14 +37,30 @@ func InitializeServer(config Config) *SocketServer {
 
 		return nil
 	})
+	socketServer.io.OnEvent("/", "/subscribe", func(s socketio.Conn, address string) {
+		err := config.subscribeManager.SubscribeUserToAddress(
+			s.Context().(string),
+			address,
+		)
+		if err != nil {
+			log.Println(
+				"err",
+				err, "then subscribe user",
+				"user:", s.Context(),
+			)
+		}
+	})
 	socketServer.io.OnDisconnect("/", func(s socketio.Conn, reason string) {
 		userId := s.Context()
 		delete(connections, userId.(string))
-		err := config.db.ClearAllUserSubscriptions(userId.(string))
-		log.Println(
-			err, "then delete all user subscribe",
-			"user:", s.Context(),
-		)
+		err := config.subscribeManager.ClearAllUserSubscriptions(userId.(string))
+		if err != nil {
+			log.Println(
+				"err",
+				err, "then delete all user subscribe",
+				"user:", s.Context(),
+			)
+		}
 
 		log.Printf("disconnect: %v", s.Context())
 	})

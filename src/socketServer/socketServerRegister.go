@@ -14,9 +14,7 @@ func Register(reg *ServiceRegistry) {
 	}
 
 	err = reg.RegisterService(
-		InitializeServer(Config{
-			dbService,
-		}),
+		InitializeServer(Config{}),
 	)
 	if err != nil {
 		log.Panicln(err)
