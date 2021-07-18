@@ -48,7 +48,45 @@ func InitialiseTransactionStore(config TransactionStoreConfig) *TransactionStore
 		lastBlock: lastBlock,
 	}
 }
-func (ts *TransactionStore) WriteBlockIndexedTransactions() error {
+
+func (ts *TransactionStore) WriteLastIndexedBlockTransactions(
+	indexedTransactions *map[string][]string,
+	indexBlock int,
+) error {
+	bdTransaction, err := ts.db.OpenTransaction()
+	if err != nil {
+		return err
+	}
+	for address, transactions := range *indexedTransactions {
+		// push to back address transaction
+		err = ArrayStringPush(
+			bdTransaction, address, transactions,
+		)
+		if err != nil {
+			bdTransaction.Discard()
+			return err
+		}
+	}
+	// update lastBlock
+	err = bdTransaction.Put(
+		lastBlockKey,
+		[]byte(strconv.Itoa(indexBlock)),
+		nil,
+	)
+	if err != nil {
+		bdTransaction.Discard()
+		return err
+	}
+
+	// commit transaction
+	err = bdTransaction.Commit()
+	if err != nil {
+		bdTransaction.Discard()
+		return err
+	}
+
+	ts.lastBlock = indexBlock
+
 	return nil
 }
 
