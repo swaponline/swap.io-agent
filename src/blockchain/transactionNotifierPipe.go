@@ -1,15 +1,17 @@
 package blockchain
 
+import "swap.io-agent/src/redisStore"
+
 type TransactionNotifierPipe struct {
 	input            chan Transaction
 	Out              chan TransactionPipeData
-	subscribersStore subscribersStore
+	subscribersStore redisStore.SubscribersStore
 	stop             chan bool
 }
 
 type TransactionNotifierPipeConfig struct {
 	Input            chan Transaction
-	SubscribersStore subscribersStore
+	SubscribersStore redisStore.SubscribersStore
 }
 
 func InitializeTransactionNotifierPipe(

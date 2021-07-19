@@ -1,14 +1,16 @@
 package blockchain
 
+import "swap.io-agent/src/redisStore"
+
 type SubscribeManager struct {
 	synchroniser struct{}
-	subscribersStore subscribersStore
+	subscribersStore redisStore.SubscribersStore
 	formatter struct{}
 }
 
 type SubscribeManagerConfig struct {
 	synchroniser struct{}
-	subscribersStore subscribersStore
+	subscribersStore redisStore.SubscribersStore
 	formatter struct{}
 }
 
