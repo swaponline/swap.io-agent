@@ -1,3 +1,7 @@
+# How to check ETH node
+
+```
+
 root@noxon-testnet ~ # su docker
 docker@noxon-testnet:/root$ cd ~/geth
 docker@noxon-testnet:~/geth$ docker-compose exec geth geth attach
@@ -18,3 +22,6 @@ To exit, press ctrl-d
   startingBlock: 6193069
 }
 >
+
+
+```
