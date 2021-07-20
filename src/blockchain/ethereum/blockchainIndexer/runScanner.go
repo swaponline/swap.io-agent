@@ -1,16 +1,20 @@
 package ethereum
 
 import (
-	"github.com/syndtr/goleveldb/leveldb"
 	"log"
 	"strconv"
 	"swap.io-agent/src/blockchain"
 	"swap.io-agent/src/blockchain/ethereum/api/ethercsan"
 	"swap.io-agent/src/blockchain/ethereum/transactionFormater"
-	"swap.io-agent/src/levelDbStore"
 	"sync"
 	"time"
 )
+
+type indexedBlock struct {
+	transactions *map[string][]string
+	index int
+	timestamp int
+}
 
 func (indexer *BlockchainIndexer) RunScanner() {
 	isSynchronize := false
@@ -19,11 +23,10 @@ func (indexer *BlockchainIndexer) RunScanner() {
 		waits := new(sync.WaitGroup)
 		waits.Add(requestsStepLen)
 
-		lastGetBlockIndex := indexer.lastBlock
-		buf := make(map[string][]string)
+		bufIndexedBlocks := make([]indexedBlock, requestsStepLen)
 		lockerChange := new(sync.Mutex)
 		for t:=1; t<=requestsStepLen; t++ {
-			go func(blockIndex int) {
+			go func(blockIndex int, ItemIndexInBufIndexedBlocks int) {
 				block, err := ethercsan.GetBlockByIndex(
 					indexer.apiKey,
 					blockIndex,
@@ -41,6 +44,13 @@ func (indexer *BlockchainIndexer) RunScanner() {
 				} else if err != ethercsan.RequestSuccess {
 					log.Panicln(err, "error code ethercsan")
 				}
+				blockTimestamp, errConv := strconv.Atoi(block.Timestamp)
+				if errConv != nil {
+					log.Panicln(
+						"block timestamp invalid",
+						errConv,
+					)
+				}
 
 				lockerChange.Lock()
 				<-time.After(time.Second)
@@ -56,30 +66,34 @@ func (indexer *BlockchainIndexer) RunScanner() {
 						fErr,
 					)
 				}
-				indexingTransactions(&buf, transactions)
-				if lastGetBlockIndex < blockIndex {
-					lastGetBlockIndex = blockIndex
+				indexedTransactions := make(map[string][]string)
+				indexingTransactions(&indexedTransactions, transactions)
+				bufIndexedBlocks[ItemIndexInBufIndexedBlocks] = indexedBlock{
+					transactions: &indexedTransactions,
+					index: blockIndex,
+					timestamp: blockTimestamp,
 				}
 				lockerChange.Unlock()
+
 				waits.Done()
-			}(indexer.lastBlock + t)
+			}(indexer.transactionsStore.GetLastTransactionBlock() + t, t)
 		}
 		// pending all done requests
 		waits.Wait()
 
-		// last block not change when blockchain synchronize
-		if indexer.lastBlock != lastGetBlockIndex {
-			err := writeIndexTransactionToDb(
-				indexer.db,
-				&buf,
-				lastGetBlockIndex,
+		for _, indexedBlock := range bufIndexedBlocks {
+			err := indexer.transactionsStore.WriteLastIndexedBlockTransactions(
+				indexedBlock.transactions,
+				indexedBlock.index,
+				indexedBlock.timestamp,
 			)
 			if err != nil {
 				log.Panicf("not write block transaction %v", err)
 			}
-
-			indexer.lastBlock = lastGetBlockIndex
-			log.Printf("last block indexed - %v", indexer.lastBlock)
+			log.Printf(
+				"last block indexed - %v",
+				indexer.transactionsStore.GetLastTransactionBlock(),
+			)
 		}
 
 		//pending
@@ -91,48 +105,56 @@ func (indexer *BlockchainIndexer) RunScanner() {
 	}
 
 	log.Println("Blockchain synchronize ***")
-	log.Println("last block - indexed", indexer.lastBlock)
+	log.Println(
+		"last block - indexed",
+		indexer.transactionsStore.GetLastTransactionBlock(),
+	)
 
 	for {
-		nextBlock := indexer.lastBlock + 1
+		nextBlock := indexer.transactionsStore.GetLastTransactionBlock() + 1
 		block, err := ethercsan.GetBlockByIndex(
 			indexer.apiKey,
 			nextBlock,
 		)
-		if err != ethercsan.RequestSuccess {
-			log.Panicf(
-				"not indexing all spend transactions(contracts) errors",
-			)
-		}
-		transactions, fErr := formattedBlockTransactions(
-			indexer.apiKey,
-			block.Transactions,
-			block,
-			requestsStepLen,
-		)
-		if fErr != nil {
-			log.Panicf("block transaction not formatted err - %v", err)
-		}
-
 		switch err {
 			case ethercsan.RequestSuccess: {
+				blockTimestamp, errConv := strconv.Atoi(block.Timestamp)
+				if errConv != nil {
+					log.Panicln(
+						"block timestamp invalid",
+						errConv,
+					)
+				}
+
+				transactions, fErr := formattedBlockTransactions(
+					indexer.apiKey,
+					block.Transactions,
+					block,
+					requestsStepLen,
+				)
+				if fErr != nil {
+					log.Panicf("block transaction not formatted err - %v", err)
+				}
 				indexedTransactions := make(map[string][]string)
 				indexingTransactions(&indexedTransactions, transactions)
-				err := writeIndexTransactionToDb(
-					indexer.db,
+
+				err := indexer.transactionsStore.WriteLastIndexedBlockTransactions(
 					&indexedTransactions,
 					nextBlock,
+					blockTimestamp,
 				)
 				if err != nil {
 					log.Panicf("not write block transaction %v", err)
 				}
-				indexer.lastBlock = nextBlock
-				log.Printf("block indexed - %v", indexer.lastBlock)
+				log.Printf(
+					"block indexed - %v",
+					indexer.transactionsStore.GetLastTransactionBlock(),
+				)
 			}
 			case ethercsan.NotExistBlockError: {}
-			default: log.Panicln(err, "error code ethercsan")
+			default: log.Panicln(err, "error code ethercsan request ethercsan.GetBlockByIndex")
 		}
-		<-time.After(time.Second * 7)
+		<-time.After(time.Second * 1)
 	}
 }
 
@@ -184,44 +206,4 @@ func indexingTransactions(
 			bufValue[address] = append(bufValue[address], transaction.Hash)
 		}
 	}
-}
-
-func writeIndexTransactionToDb(
-	db *leveldb.DB,
-	indexedTransactions *map[string][]string,
-	indexBlock int,
-) error {
-	bdTransaction, err := db.OpenTransaction()
-	if err != nil {
-		return err
-	}
-	for address, transactions := range *indexedTransactions {
-		// push to back address transaction
-		err = levelDbStore.ArrayStringPush(
-			bdTransaction, address, transactions,
-		)
-		if err != nil {
-			bdTransaction.Discard()
-			return err
-		}
-	}
-	// update lastBlock
-	err = bdTransaction.Put(
-		lastBlockKey,
-		[]byte(strconv.Itoa(indexBlock)),
-		nil,
-	)
-	if err != nil {
-		bdTransaction.Discard()
-		return err
-	}
-
-	// commit transaction
-	err = bdTransaction.Commit()
-	if err != nil {
-		bdTransaction.Discard()
-		return err
-	}
-
-	return nil
 }

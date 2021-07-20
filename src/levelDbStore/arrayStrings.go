@@ -6,12 +6,12 @@ import (
 	"strings"
 )
 
-type GetPutLevelDb interface {
+type IGetPutLevelDb interface {
 	Get([]byte, *opt.ReadOptions) ([]byte, error)
 	Put([]byte, []byte, *opt.WriteOptions) error
 }
 
-func ArrayStringPush(db GetPutLevelDb, key string, value []string) error {
+func ArrayStringPush(db IGetPutLevelDb, key string, value []string) error {
 	keyValue, err := db.Get([]byte(key), nil)
 	if err != leveldb.ErrNotFound {
 		return err

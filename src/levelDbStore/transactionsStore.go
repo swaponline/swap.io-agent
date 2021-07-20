@@ -4,55 +4,63 @@ import (
 	"errors"
 	"fmt"
 	"github.com/syndtr/goleveldb/leveldb"
-	"log"
 	"strconv"
 	"strings"
 )
 
-type TransactionStore struct {
+type TransactionsStore struct {
 	db *leveldb.DB
 	lastBlock int
 }
-type TransactionStoreConfig struct {
-	name string
-	defaultScannedBlocks int
+type TransactionsStoreConfig struct {
+	Name string
+	DefaultScannedBlocks int
 }
 
 const dbDir = "./blockchainIndexes/"
 var lastBlockKey = []byte("lastBlock")
 
-func InitialiseTransactionStore(config TransactionStoreConfig) *TransactionStore {
-	db, err := leveldb.OpenFile(dbDir+config.name, nil)
+func InitialiseTransactionStore(config TransactionsStoreConfig) (*TransactionsStore, error) {
+	db, err := leveldb.OpenFile(dbDir+config.Name, nil)
 	if err != nil {
-		log.Panicf("db not open %v. err - %v", dbDir+config.name, err)
+		return nil, errors.New(
+			fmt.Sprintf("db not open %v. err - %v", dbDir+config.Name, err),
+		)
 	}
 
 	var lastBlock int
 	switch lastBlockStr, err := db.Get(lastBlockKey, nil); err {
 	case nil: {
 		lastBlockStrNum, err := strconv.Atoi(string(lastBlockStr))
-		if err != nil {log.Panicln("num last block not parsed")}
+		if err != nil {
+			return nil, errors.New("num last block not parsed")
+		}
 		lastBlock = lastBlockStrNum
 	}
 	case leveldb.ErrNotFound: {
 		err = db.Put(
 			lastBlockKey,
-			[]byte(strconv.Itoa(config.defaultScannedBlocks)),
+			[]byte(strconv.Itoa(config.DefaultScannedBlocks)),
 			nil,
 		)
-		if err != nil {log.Panicln("not set value to lastBlockKey")}
-		lastBlock = config.defaultScannedBlocks
+		if err != nil {
+			return nil, errors.New("not set value to lastBlockKey")
+		}
+		lastBlock = config.DefaultScannedBlocks
 	}
-	default: log.Panicln("error then get last block index")
+	default: return nil, errors.New("error then get last block index")
 	}
 
-	return &TransactionStore{
+	return &TransactionsStore{
 		db: db,
 		lastBlock: lastBlock,
-	}
+	}, nil
 }
 
-func (ts *TransactionStore) GetAddressTransactionsHash(
+func (ts *TransactionsStore) GetLastTransactionBlock() int {
+	return ts.lastBlock
+}
+func (ts *TransactionsStore) GetAddressTransactionsHash(
 	address string,
 	startTime int,
 	endTime int,
@@ -87,22 +95,26 @@ func (ts *TransactionStore) GetAddressTransactionsHash(
 
 	return transactionsHash, nil
 }
-func (ts *TransactionStore) WriteLastIndexedBlockTransactions(
+func (ts *TransactionsStore) WriteLastIndexedBlockTransactions(
 	indexedTransactions *map[string][]string,
 	indexBlock int,
-	timestamp int,
+	timestampBlock int,
 ) error {
 	bdTransaction, err := ts.db.OpenTransaction()
 	if err != nil {
 		return err
 	}
 	for address, transactions := range *indexedTransactions {
-		// push back address transaction|timestampBlock
+		//format transactions
+		formattedTransactions := make([]string, len(transactions))
 		for index, hashTransaction := range transactions {
-			transactions[index] = fmt.Sprintf(`%v|%v`, hashTransaction, timestamp)
+			formattedTransactions[index] = fmt.Sprintf(
+				`%v|%v`, hashTransaction, timestampBlock,
+			)
 		}
+		// push back address transaction|timestampBlock
 		err = ArrayStringPush(
-			bdTransaction, address, transactions,
+			bdTransaction, address, formattedTransactions,
 		)
 		if err != nil {
 			bdTransaction.Discard()
@@ -132,10 +144,10 @@ func (ts *TransactionStore) WriteLastIndexedBlockTransactions(
 	return nil
 }
 
-func (ts *TransactionStore) Start() {}
-func (ts *TransactionStore) Stop() error {
+func (ts *TransactionsStore) Start() {}
+func (ts *TransactionsStore) Stop() error {
 	return nil
 }
-func (ts *TransactionStore) Status() error {
+func (ts *TransactionsStore) Status() error {
 	return nil
 }
