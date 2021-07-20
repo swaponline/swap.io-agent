@@ -1,9 +1,12 @@
 package levelDbStore
 
 import (
+	"errors"
+	"fmt"
 	"github.com/syndtr/goleveldb/leveldb"
 	"log"
 	"strconv"
+	"strings"
 )
 
 type TransactionStore struct {
@@ -49,16 +52,55 @@ func InitialiseTransactionStore(config TransactionStoreConfig) *TransactionStore
 	}
 }
 
+func (ts *TransactionStore) GetAddressTransactionsHash(
+	address string,
+	startTime int,
+	endTime int,
+) ([]string, error) {
+	transactionsInfoBytes, err := ts.db.Get([]byte(address), nil)
+	if err != nil {
+		if err == leveldb.ErrNotFound {
+			return make([]string, 0), err
+		}
+		return nil, err
+	}
+
+	transactionsInfo := strings.Split(
+		string(transactionsInfoBytes),
+		" ",
+	)
+	transactionsHash := make([]string, 0)
+	for _, transactionInfo := range transactionsInfo {
+		hashTimestamp := strings.Split(transactionInfo, "|")
+		if len(hashTimestamp) != 2 {
+			return nil, errors.New("not get hash|time transaction info from db")
+		}
+		timestamp, err := strconv.Atoi(hashTimestamp[1])
+		if err != nil {
+			return nil, err
+		}
+
+		if startTime <= timestamp && timestamp <= endTime {
+			transactionsHash = append(transactionsHash, hashTimestamp[0])
+		}
+	}
+
+	return transactionsHash, nil
+}
 func (ts *TransactionStore) WriteLastIndexedBlockTransactions(
 	indexedTransactions *map[string][]string,
 	indexBlock int,
+	timestamp int,
 ) error {
 	bdTransaction, err := ts.db.OpenTransaction()
 	if err != nil {
 		return err
 	}
 	for address, transactions := range *indexedTransactions {
-		// push to back address transaction
+		// push back address transaction|timestampBlock
+		for index, hashTransaction := range transactions {
+			transactions[index] = fmt.Sprintf(`%v|%v`, hashTransaction, timestamp)
+		}
 		err = ArrayStringPush(
 			bdTransaction, address, transactions,
 		)
