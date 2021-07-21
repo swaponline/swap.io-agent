@@ -24,14 +24,19 @@ type GetTransactionLogsResponse struct {
 		Type             string `json:"type"`
 	} `json:"result"`
 }
-type currentBlockIndexResponse struct {
+type getCurrentBlockIndexResponse struct {
 	Id int `json:"id"`
 	Result string `json:"result"`
 }
-type blockResponse struct {
+type getBlockResponse struct {
 	Jsonrpc string `json:"jsonrpc"`
 	Id      int    `json:"id"`
 	Result  Block `json:"result"`
+}
+type getTransactionByHashResponse struct {
+	Jsonrpc string `json:"jsonrpc"`
+	Id      int    `json:"id"`
+	Result  BlockTransaction `json:"result"`
 }
 type Block struct {
 	Difficulty      string `json:"difficulty"`

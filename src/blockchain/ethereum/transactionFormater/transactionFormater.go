@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"strconv"
 	"swap.io-agent/src/blockchain"
 	"swap.io-agent/src/blockchain/ethereum/api/ethercsan"
 	journal "swap.io-agent/src/blockchain/journal"
@@ -11,6 +12,30 @@ import (
 
 const ETH = "ETH"
 
+func FormatTransactionFromHash(
+	apiKey string,
+	hash string,
+) (*blockchain.Transaction, error) {
+	transaction, err := ethercsan.GetTransactionByHash(apiKey, hash)
+	if err != ethercsan.RequestSuccess {
+		return nil, errors.New(
+			fmt.Sprintf("not get transaction by hash %v", hash),
+		)
+	}
+
+	transactionBlockIndex, errConv := strconv.Atoi(transaction.BlockNumber)
+	if errConv != nil {
+		return nil, errConv
+	}
+	blockTransaction, err := ethercsan.GetBlockByIndex(apiKey, transactionBlockIndex)
+	if err != ethercsan.RequestSuccess {
+		return nil, errors.New(
+			fmt.Sprintf("not get transaction block by index %v", err),
+		)
+	}
+
+	return FormatTransaction(apiKey, transaction, blockTransaction)
+}
 func FormatTransaction(
 	apiKey string,
 	blockTransaction *ethercsan.BlockTransaction,
@@ -51,10 +76,12 @@ func FormatTransaction(
 	transactionJournal.Add(ETH, blockchain.Spend{
 		Wallet: blockTransaction.From,
 		Value: `-`+transactionFee,
+		Label: "Transaction fee",
 	})
 	transactionJournal.Add(ETH, blockchain.Spend{
 		Wallet: block.Miner,
 		Value: transactionFee,
+		Label: "Transaction fee",
 	})
 	transactionJournal.Add(ETH, blockchain.Spend{
 		Wallet: blockTransaction.To,

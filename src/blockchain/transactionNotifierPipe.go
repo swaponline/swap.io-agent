@@ -5,13 +5,13 @@ import "swap.io-agent/src/redisStore"
 type TransactionNotifierPipe struct {
 	input            chan Transaction
 	Out              chan TransactionPipeData
-	subscribersStore redisStore.SubscribersStore
+	subscribersStore redisStore.ISubscribersStore
 	stop             chan bool
 }
 
 type TransactionNotifierPipeConfig struct {
 	Input            chan Transaction
-	SubscribersStore redisStore.SubscribersStore
+	SubscribersStore redisStore.ISubscribersStore
 }
 
 func InitializeTransactionNotifierPipe(

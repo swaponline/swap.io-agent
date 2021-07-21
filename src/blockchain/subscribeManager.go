@@ -4,13 +4,13 @@ import "swap.io-agent/src/redisStore"
 
 type SubscribeManager struct {
 	synchroniser struct{}
-	subscribersStore redisStore.SubscribersStore
+	subscribersStore redisStore.ISubscribersStore
 	formatter struct{}
 }
 
 type SubscribeManagerConfig struct {
 	synchroniser struct{}
-	subscribersStore redisStore.SubscribersStore
+	subscribersStore redisStore.ISubscribersStore
 	formatter struct{}
 }
 

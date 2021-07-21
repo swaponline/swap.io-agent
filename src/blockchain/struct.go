@@ -30,6 +30,7 @@ type SpendsAsset struct {
 type Spend struct {
 	Wallet string `json:"wallet"`
 	Value  string `json:"value"`
+	Label  string `json:"label,omitempty"`
 }
 type TransactionPipeData struct {
 	Subscribers []string

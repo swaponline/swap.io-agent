@@ -20,31 +20,31 @@ func GetBlockByIndex(apiKey string, index int) (*Block,int) {
 	)
 	if err != nil {return nil, RequestError}
 
-	reqBody, err := io.ReadAll(res.Body)
+	resBody, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, ParseBodyError
 	}
-	var reqError apiError
-	var reqData blockResponse
+	var resError apiError
+	var resData getBlockResponse
 
 	// insert in error struct
-	if err = json.Unmarshal(reqBody, &reqError); err == nil {
-		if reqError.Result == "Max rate limit reached" {
+	if err = json.Unmarshal(resBody, &resError); err == nil {
+		if resError.Result == "Max rate limit reached" {
 			return nil, RequestLimitError
 		}
 		// if error parsed width empty filed then block not exit
-		if reqError.Result == "" &&
-		   reqError.Status == "" &&
-		   reqError.Message == "" {
+		if resError.Result  == "" &&
+		   resError.Status  == "" &&
+		   resError.Message == "" {
 			return nil, NotExistBlockError
 		}
 		return nil, RequestError
 	}
 
-	if err = json.Unmarshal(reqBody, &reqData); err != nil {
+	if err = json.Unmarshal(resBody, &resData); err != nil {
 		log.Println(err)
 		return nil, ParseBodyError
 	}
 
-	return &reqData.Result, RequestSuccess
+	return &resData.Result, RequestSuccess
 }
