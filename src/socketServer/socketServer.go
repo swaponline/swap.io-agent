@@ -1,12 +1,14 @@
 package socketServer
 
 import (
+	"encoding/json"
 	socketio "github.com/googollee/go-socket.io"
 	"github.com/googollee/go-socket.io/engineio"
 	"log"
 	"net/http"
 	"swap.io-agent/src/auth"
 	"swap.io-agent/src/blockchain"
+	"sync"
 )
 
 type Config struct {
@@ -25,19 +27,19 @@ func InitializeServer(config Config) *SocketServer {
 		}),
 	}
 
-	connections := make(map[string]socketio.Conn)
+	connections := sync.Map{}
 	socketServer.io.OnConnect("/", func(s socketio.Conn) error {
 		url := s.URL()
 		userId, _ := auth.DecodeAccessToken(
 			url.Query().Get("token"),
 		)
-		connections[userId] = s
+		connections.Store(userId, s)
 		s.SetContext(userId)
 		log.Printf("connect: %v", userId)
 
 		return nil
 	})
-	socketServer.io.OnEvent("/", "/subscribe", func(s socketio.Conn, address string) {
+	socketServer.io.OnEvent("/", "subscribe", func(s socketio.Conn, address string) {
 		err := config.subscribeManager.SubscribeUserToAddress(
 			s.Context().(string),
 			address,
@@ -52,7 +54,7 @@ func InitializeServer(config Config) *SocketServer {
 	})
 	socketServer.io.OnDisconnect("/", func(s socketio.Conn, reason string) {
 		userId := s.Context()
-		delete(connections, userId.(string))
+		connections.Delete(userId)
 		err := config.subscribeManager.ClearAllUserSubscriptions(userId.(string))
 		if err != nil {
 			log.Println(
@@ -67,9 +69,17 @@ func InitializeServer(config Config) *SocketServer {
 	go func() {
 		for {
 			info := <-config.onNotifyUsers
+			transactionBytes, err := json.Marshal(info.Transaction)
+			if err != nil {
+				log.Println("err", err)
+				continue
+			}
 			for _, userId := range info.Subscribers {
-				if _, ok := connections[userId]; ok {
-					//emit
+				if connection, ok := connections.Load(userId); ok && connection != nil {
+					connection.(socketio.Conn).Emit(
+						"newTransaction",
+						transactionBytes,
+					)
 				}
 			}
 		}
