@@ -6,9 +6,6 @@ import (
 	"swap.io-agent/src/levelDbStore"
 )
 
-var lastBlockKey = []byte("lastBlock")
-var dbpath = "./blockchainIndexes/ethereum"
-
 type BlockchainIndexer struct {
 	transactionsStore levelDbStore.ITransactionsStore
 	apiKey            string
@@ -21,10 +18,21 @@ type BlockchainIndexerConfig struct {
 }
 
 func InitializeIndexer(config BlockchainIndexerConfig) *BlockchainIndexer {
-	return &BlockchainIndexer{
+	bi := &BlockchainIndexer{
 		transactionsStore: config.TransactionsStore,
 		apiKey: os.Getenv("ETHERSCAN_API_KEY"),
 		isSynchronize: make(chan struct{}),
 		newTransactions: make(chan blockchain.Transaction),
 	}
+	bi.RunScanner()
+
+	return bi
+}
+
+func (_ *BlockchainIndexer) Start()  {}
+func (_ *BlockchainIndexer) Stop() error {
+	return nil
+}
+func (_ *BlockchainIndexer) Status() error {
+	return nil
 }

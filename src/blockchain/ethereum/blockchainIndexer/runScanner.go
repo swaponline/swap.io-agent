@@ -25,7 +25,7 @@ func (indexer *BlockchainIndexer) RunScanner() {
 
 		bufIndexedBlocks := make([]indexedBlock, requestsStepLen)
 		lockerChange := new(sync.Mutex)
-		for t:=1; t<=requestsStepLen; t++ {
+		for t:=0; t<requestsStepLen; t++ {
 			go func(blockIndex int, ItemIndexInBufIndexedBlocks int) {
 				block, err := ethercsan.GetBlockByIndex(
 					indexer.apiKey,
@@ -44,7 +44,7 @@ func (indexer *BlockchainIndexer) RunScanner() {
 				} else if err != ethercsan.RequestSuccess {
 					log.Panicln(err, "error code ethercsan")
 				}
-				blockTimestamp, errConv := strconv.Atoi(block.Timestamp)
+				blockTimestamp, errConv := strconv.ParseInt(block.Timestamp, 0, 64)
 				if errConv != nil {
 					log.Panicln(
 						"block timestamp invalid",
@@ -71,12 +71,12 @@ func (indexer *BlockchainIndexer) RunScanner() {
 				bufIndexedBlocks[ItemIndexInBufIndexedBlocks] = indexedBlock{
 					transactions: &indexedTransactions,
 					index: blockIndex,
-					timestamp: blockTimestamp,
+					timestamp: int(blockTimestamp),
 				}
 				lockerChange.Unlock()
 
 				waits.Done()
-			}(indexer.transactionsStore.GetLastTransactionBlock() + t, t)
+			}(indexer.transactionsStore.GetLastTransactionBlock()+1+t, t)
 		}
 		// pending all done requests
 		waits.Wait()
