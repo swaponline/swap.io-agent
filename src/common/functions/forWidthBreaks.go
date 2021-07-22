@@ -5,12 +5,12 @@ import (
 	"time"
 )
 
-func forWidthBreaks(
+func ForWidthBreaks(
 	allSteps,
 	countStepsBeforeBreak int,
 	breakTime time.Duration,
-	worker func(wg *sync.WaitGroup, step int),
-) {
+	worker func(wg *sync.WaitGroup, step int) error,
+) error {
 	for t:=0; t<allSteps; t+=countStepsBeforeBreak {
 		countSteps := minInt(
 			countStepsBeforeBreak,
@@ -18,10 +18,20 @@ func forWidthBreaks(
 		)
 		wg := new(sync.WaitGroup)
 		wg.Add(countSteps)
+		var err error
 		for r:=0; r<countSteps; r++ {
-			worker(wg, t+r)
+			go func(step int){
+				workerError := worker(wg, step)
+				if workerError != nil {
+					err = workerError
+				}
+			}(t+r)
 		}
 		wg.Wait()
 		<-time.After(breakTime)
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }

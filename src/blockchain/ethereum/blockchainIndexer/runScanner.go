@@ -2,6 +2,7 @@ package ethereum
 
 import (
 	"log"
+	"os"
 	"strconv"
 	"swap.io-agent/src/blockchain"
 	"swap.io-agent/src/blockchain/ethereum/api/ethercsan"
@@ -18,7 +19,13 @@ type indexedBlock struct {
 
 func (indexer *BlockchainIndexer) RunScanner() {
 	isSynchronize := false
-	requestsStepLen := 4
+	requestsStepLen, err := strconv.Atoi(
+		os.Getenv("BLOCKCHAIN_REQUESTS_LIMIT"),
+	)
+	if err != nil {
+		log.Panicf("set BLOCKCHAIN_REQUESTS_LIMIT in env")
+	}
+
 	for {
 		waits := new(sync.WaitGroup)
 		waits.Add(requestsStepLen)

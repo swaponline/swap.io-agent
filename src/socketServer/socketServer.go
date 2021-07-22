@@ -12,6 +12,7 @@ import (
 )
 
 type Config struct {
+	synchronizer       blockchain.Synchronizer
 	subscribeManager   blockchain.SubscribeManager
 	onNotifyUsers chan blockchain.TransactionPipeData
 }
@@ -39,10 +40,10 @@ func InitializeServer(config Config) *SocketServer {
 
 		return nil
 	})
-	socketServer.io.OnEvent("/", "subscribe", func(s socketio.Conn, address string) {
+	socketServer.io.OnEvent("/", "subscribe", func(s socketio.Conn, payload SubscribeEventPayload) string {
 		err := config.subscribeManager.SubscribeUserToAddress(
 			s.Context().(string),
-			address,
+			payload.address,
 		)
 		if err != nil {
 			log.Println(
@@ -50,6 +51,24 @@ func InitializeServer(config Config) *SocketServer {
 				err, "then subscribe user",
 				"user:", s.Context(),
 			)
+			return "error"
+		}
+		transactions, err := config.synchronizer.SynchronizeAddress(
+			payload.address,
+			payload.startTime,
+			payload.endTime,
+		)
+		if err != nil {
+			return "error"
+		}
+
+		if data, err := json.Marshal(SynchroniseAddressData{
+			Transactions: transactions,
+			Address: payload.address,
+		}); err == nil {
+			return string(data)
+		} else {
+			return "error"
 		}
 	})
 	socketServer.io.OnDisconnect("/", func(s socketio.Conn, reason string) {

@@ -45,6 +45,9 @@ func main() {
 			DefaultScannedBlocks: blockchainDefaultScannedBlock,
 		},
 	)
+	if err != nil {
+		log.Panicln(err.Error())
+	}
 	err = registry.RegisterService(transactionStore)
 	if err != nil {
 		log.Panicln(err.Error())
