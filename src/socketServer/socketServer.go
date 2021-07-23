@@ -8,13 +8,14 @@ import (
 	"net/http"
 	"swap.io-agent/src/auth"
 	"swap.io-agent/src/blockchain"
+	synchronizer2 "swap.io-agent/src/blockchain/synchronizer"
 	"sync"
 )
 
 type Config struct {
-	synchronizer       blockchain.Synchronizer
-	subscribeManager   blockchain.SubscribeManager
-	onNotifyUsers chan blockchain.TransactionPipeData
+	synchronizer     synchronizer2.Synchronizer
+	subscribeManager blockchain.SubscribeManager
+	onNotifyUsers    chan blockchain.TransactionPipeData
 }
 
 type SocketServer struct {

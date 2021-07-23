@@ -7,6 +7,7 @@ import (
 )
 
 type BlockchainIndexer struct {
+	formatter         blockchain.Formatter
 	transactionsStore levelDbStore.ITransactionsStore
 	apiKey            string
 	isSynchronize     chan struct{}
@@ -14,6 +15,7 @@ type BlockchainIndexer struct {
 }
 
 type BlockchainIndexerConfig struct {
+	Formatter blockchain.Formatter
 	TransactionsStore levelDbStore.ITransactionsStore
 }
 

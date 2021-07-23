@@ -7,9 +7,10 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"swap.io-agent/src/blockchain/ethereum/api"
 )
 
-func GetBlockByIndex(apiKey string, index int) (*Block,int) {
+func GetBlockByIndex(apiKey string, index int) (*api.Block,int) {
 	log.Println("get block", index, "0x"+strconv.FormatInt(int64(index), 16))
 	res, err := http.Get(
 		fmt.Sprintf(

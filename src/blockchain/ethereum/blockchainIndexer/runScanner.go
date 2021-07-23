@@ -4,8 +4,8 @@ import (
 	"log"
 	"strconv"
 	"swap.io-agent/src/blockchain"
+	"swap.io-agent/src/blockchain/ethereum/api"
 	"swap.io-agent/src/blockchain/ethereum/api/ethercsan"
-	"swap.io-agent/src/blockchain/ethereum/transactionFormatter"
 	"swap.io-agent/src/env"
 	"sync"
 	"time"
@@ -57,7 +57,7 @@ func (indexer *BlockchainIndexer) RunScanner() {
 				lockerChange.Lock()
 				<-time.After(time.Second)
 				transactions, fErr := formattedBlockTransactions(
-					indexer.apiKey,
+					indexer.formatter,
 					block.Transactions,
 					block,
 					requestsStepLen,
@@ -129,7 +129,7 @@ func (indexer *BlockchainIndexer) RunScanner() {
 				}
 
 				transactions, fErr := formattedBlockTransactions(
-					indexer.apiKey,
+					indexer.formatter,
 					block.Transactions,
 					block,
 					requestsStepLen,
@@ -161,9 +161,9 @@ func (indexer *BlockchainIndexer) RunScanner() {
 }
 
 func formattedBlockTransactions(
-	apiKey string,
-	transactions []ethercsan.BlockTransaction,
-	block *ethercsan.Block,
+	formatter blockchain.Formatter,
+	transactions []api.BlockTransaction,
+	block *api.Block,
 	requestLimitSecond int,
 ) ([]blockchain.Transaction, error) {
 	var err error
@@ -177,8 +177,7 @@ func formattedBlockTransactions(
 		wg.Add(steps)
 		for r:=0; r<steps; r++ {
 			go func(index int) {
-				transaction, fError := transactionFormatter.FormatTransaction(
-					apiKey,
+				transaction, fError := formatter.FormatTransaction(
 					&transactions[index],
 					block,
 				)

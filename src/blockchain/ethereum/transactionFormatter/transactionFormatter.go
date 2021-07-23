@@ -6,17 +6,28 @@ import (
 	"math/big"
 	"strconv"
 	"swap.io-agent/src/blockchain"
+	"swap.io-agent/src/blockchain/ethereum/api"
 	"swap.io-agent/src/blockchain/ethereum/api/ethercsan"
 	journal "swap.io-agent/src/blockchain/journal"
 )
 
 const ETH = "ETH"
 
-func FormatTransactionFromHash(
-	apiKey string,
+type TransactionFormatter struct {
+	apiKey string
+}
+type TransactionFormatterConfig struct {
+	ApiKey string
+}
+
+func InitializeTransactionFormatter(config TransactionFormatterConfig)*TransactionFormatter {
+	return &TransactionFormatter{apiKey: config.ApiKey}
+}
+
+func (tf *TransactionFormatter) FormatTransactionFromHash(
 	hash string,
 ) (*blockchain.Transaction, error) {
-	transaction, err := ethercsan.GetTransactionByHash(apiKey, hash)
+	transaction, err := ethercsan.GetTransactionByHash(tf.apiKey, hash)
 	if err != ethercsan.RequestSuccess {
 		return nil, errors.New(
 			fmt.Sprintf("not get transaction by hash %v", hash),
@@ -27,22 +38,21 @@ func FormatTransactionFromHash(
 	if errConv != nil {
 		return nil, errConv
 	}
-	blockTransaction, err := ethercsan.GetBlockByIndex(apiKey, transactionBlockIndex)
+	blockTransaction, err := ethercsan.GetBlockByIndex(tf.apiKey, transactionBlockIndex)
 	if err != ethercsan.RequestSuccess {
 		return nil, errors.New(
 			fmt.Sprintf("not get transaction block by index %v", err),
 		)
 	}
 
-	return FormatTransaction(apiKey, transaction, blockTransaction)
+	return tf.FormatTransaction(transaction, blockTransaction)
 }
-func FormatTransaction(
-	apiKey string,
-	blockTransaction *ethercsan.BlockTransaction,
-	block *ethercsan.Block,
+func (tf *TransactionFormatter) FormatTransaction(
+	blockTransaction *api.BlockTransaction,
+	block *api.Block,
 ) (*blockchain.Transaction, error) {
 	transactionLogs, errReq := ethercsan.GetTransactionLogs(
-		apiKey,
+		tf.apiKey,
 		blockTransaction.Hash,
 	)
 	if errReq != ethercsan.RequestSuccess {
@@ -115,4 +125,12 @@ func FormatTransaction(
 	}
 
 	return &transaction, nil
+}
+
+func (_ *TransactionFormatter) Start() {}
+func (_ *TransactionFormatter) Stop() error {
+	return nil
+}
+func (_ *TransactionFormatter) Status() error {
+	return nil
 }

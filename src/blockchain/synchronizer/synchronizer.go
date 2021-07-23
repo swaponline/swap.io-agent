@@ -1,6 +1,7 @@
-package blockchain
+package synchronizer
 
 import (
+	"swap.io-agent/src/blockchain"
 	"swap.io-agent/src/common/functions"
 	"swap.io-agent/src/env"
 	"swap.io-agent/src/levelDbStore"
@@ -9,19 +10,17 @@ import (
 )
 
 type Synchronizer struct {
-	apiKey string
-	formatter Formatter
-	store levelDbStore.ITransactionsStore
+	formatter blockchain.Formatter
+	store     levelDbStore.ITransactionsStore
 }
 type SynchronizerConfig struct {
-	apiKey string
-	Formatter Formatter
-	Store levelDbStore.ITransactionsStore
+	Formatter blockchain.Formatter
+	Store     levelDbStore.ITransactionsStore
 }
 
 func InitialiseSynchronizer(config SynchronizerConfig) *Synchronizer {
 	return &Synchronizer{
-		apiKey: config.apiKey,
+		formatter: config.Formatter,
 		store: config.Store,
 	}
 }
@@ -30,7 +29,7 @@ func (s *Synchronizer) SynchronizeAddress(
 	address string,
 	startTime int,
 	endTime int,
-)([]*Transaction, error) {
+)([]*blockchain.Transaction, error) {
 	transactionsHash, err := s.store.GetAddressTransactionsHash(
 		address,
 		startTime,
@@ -40,20 +39,19 @@ func (s *Synchronizer) SynchronizeAddress(
 		return nil, err
 	}
 
-	transactions := make([]*Transaction, len(transactionsHash))
+	transactions := make([]*blockchain.Transaction, len(transactionsHash))
 	err = functions.ForWidthBreaks(
 		len(transactionsHash),
 		env.BLOCKCHAIN_REQUESTS_LIMIT,
 		time.Second,
 		func(wg *sync.WaitGroup, step int) error {
-			//transaction, err := s.formatter.FormatTransactionFromHash(
-			//	s.apiKey,
-			//	transactionsHash[step],
-			//)
-			//if err != nil {
-			//	return err
-			//}
-			//transactions[step] = transaction
+			transaction, err := s.formatter.FormatTransactionFromHash(
+				transactionsHash[step],
+			)
+			if err != nil {
+				return err
+			}
+			transactions[step] = transaction
 
 			return nil
 		},
@@ -65,10 +63,10 @@ func (s *Synchronizer) SynchronizeAddress(
 	return transactions,nil
 }
 
-func Start() {}
-func Stop() error {
+func (_ *Synchronizer) Start() {}
+func (_ *Synchronizer) Stop() error {
 	return nil
 }
-func Status() error {
+func (_ *Synchronizer) Status() error {
 	return nil
 }

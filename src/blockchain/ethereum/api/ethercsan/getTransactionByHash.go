@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"swap.io-agent/src/blockchain/ethereum/api"
 )
 
 func GetTransactionByHash(
 	apiKey string,
 	hash string,
-) (*BlockTransaction, int) {
+) (*api.BlockTransaction, int) {
 	res, err := http.Get(
 		fmt.Sprintf(
 			"https://api.etherscan.io/api?module=proxy&action=eth_getTransactionByHash&apikey=%v&txhash=%v",

@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 	ethereum "swap.io-agent/src/blockchain/ethereum/blockchainIndexer"
+	"swap.io-agent/src/blockchain/ethereum/transactionFormatter"
+	"swap.io-agent/src/blockchain/synchronizer"
 	"swap.io-agent/src/env"
 	"swap.io-agent/src/httpHandler"
 	"swap.io-agent/src/httpServer"
@@ -42,6 +44,18 @@ func main() {
 	if err != nil {
 		log.Panicln(err.Error())
 	}
+
+	formatter := transactionFormatter.InitializeTransactionFormatter(
+		transactionFormatter.TransactionFormatterConfig{
+			ApiKey: env.ETHERSCAN_API_KEY,
+		},
+	)
+	err = registry.RegisterService(formatter)
+	if err != nil {
+		log.Panicln(err.Error())
+	}
+
+	synchronizer.Register(registry)
 
 	ethereum.BlockchainIndexerRegister(registry)
 
