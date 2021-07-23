@@ -9,6 +9,10 @@ func New() Set {
 		buf: make(map[string]struct{}),
 	}
 }
+func (s *Set) Has(key string) bool {
+	_, exist := s.buf[key]
+	return exist
+}
 func (s *Set) Add(key string) *Set {
 	s.buf[key] = struct {}{}
 	return s

@@ -88,7 +88,7 @@ func InitializeServer(config Config) *SocketServer {
 	go func() {
 		for {
 			info := <-config.onNotifyUsers
-			transactionBytes, err := json.Marshal(info.Transaction)
+			transactionsJson, err := json.Marshal(info.Transaction)
 			if err != nil {
 				log.Println("err", err)
 				continue
@@ -97,7 +97,7 @@ func InitializeServer(config Config) *SocketServer {
 				if connection, ok := connections.Load(userId); ok && connection != nil {
 					connection.(socketio.Conn).Emit(
 						"newTransaction",
-						transactionBytes,
+						transactionsJson,
 					)
 				}
 			}
