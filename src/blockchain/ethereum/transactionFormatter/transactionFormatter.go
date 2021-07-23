@@ -1,4 +1,4 @@
-package transactionFormater
+package transactionFormatter
 
 import (
 	"errors"

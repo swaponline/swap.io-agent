@@ -1,8 +1,8 @@
 package ethereum
 
 import (
-	"os"
 	"swap.io-agent/src/blockchain"
+	"swap.io-agent/src/env"
 	"swap.io-agent/src/levelDbStore"
 )
 
@@ -20,7 +20,7 @@ type BlockchainIndexerConfig struct {
 func InitializeIndexer(config BlockchainIndexerConfig) *BlockchainIndexer {
 	bi := &BlockchainIndexer{
 		transactionsStore: config.TransactionsStore,
-		apiKey: os.Getenv("ETHERSCAN_API_KEY"),
+		apiKey: env.ETHERSCAN_API_KEY,
 		isSynchronize: make(chan struct{}),
 		newTransactions: make(chan blockchain.Transaction),
 	}

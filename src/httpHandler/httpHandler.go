@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
+	"swap.io-agent/src/env"
 )
 
 type HttpHandler struct {
@@ -13,7 +13,7 @@ type HttpHandler struct {
 
 func InitializeServer() *HttpHandler {
 	server := &http.Server{
-		Addr: fmt.Sprintf(":%s", os.Getenv("PORT")),
+		Addr: fmt.Sprintf(":%v", env.PORT),
 	}
 	return &HttpHandler{
 		server: server,
@@ -21,7 +21,7 @@ func InitializeServer() *HttpHandler {
 }
 
 func (httpHandler *HttpHandler) Start() {
-	log.Printf("Http handle:%v", os.Getenv("PORT"))
+	log.Printf("Http handle:%v", env.PORT)
 
 	err := httpHandler.server.ListenAndServe()
 	if err != nil {

@@ -2,11 +2,11 @@ package ethereum
 
 import (
 	"log"
-	"os"
 	"strconv"
 	"swap.io-agent/src/blockchain"
 	"swap.io-agent/src/blockchain/ethereum/api/ethercsan"
-	"swap.io-agent/src/blockchain/ethereum/transactionFormater"
+	"swap.io-agent/src/blockchain/ethereum/transactionFormatter"
+	"swap.io-agent/src/env"
 	"sync"
 	"time"
 )
@@ -19,12 +19,7 @@ type indexedBlock struct {
 
 func (indexer *BlockchainIndexer) RunScanner() {
 	isSynchronize := false
-	requestsStepLen, err := strconv.Atoi(
-		os.Getenv("BLOCKCHAIN_REQUESTS_LIMIT"),
-	)
-	if err != nil {
-		log.Panicf("set BLOCKCHAIN_REQUESTS_LIMIT in env")
-	}
+	requestsStepLen := env.BLOCKCHAIN_REQUESTS_LIMIT
 
 	for {
 		waits := new(sync.WaitGroup)
@@ -182,7 +177,7 @@ func formattedBlockTransactions(
 		wg.Add(steps)
 		for r:=0; r<steps; r++ {
 			go func(index int) {
-				transaction, fError := transactionFormater.FormatTransaction(
+				transaction, fError := transactionFormatter.FormatTransaction(
 					apiKey,
 					&transactions[index],
 					block,

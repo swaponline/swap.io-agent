@@ -8,4 +8,6 @@ type Broadcaster interface {
 type Notifier interface {
 	notify(ctx context.Context, address string) error
 }
-
+type Formatter interface {
+	FormatTransactionFromHash(hash string) (Transaction, error)
+}

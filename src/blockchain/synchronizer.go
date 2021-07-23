@@ -1,11 +1,8 @@
 package blockchain
 
 import (
-	"log"
-	"os"
-	"strconv"
-	"swap.io-agent/src/blockchain/ethereum/transactionFormater"
 	"swap.io-agent/src/common/functions"
+	"swap.io-agent/src/env"
 	"swap.io-agent/src/levelDbStore"
 	"sync"
 	"time"
@@ -13,10 +10,12 @@ import (
 
 type Synchronizer struct {
 	apiKey string
+	formatter Formatter
 	store levelDbStore.ITransactionsStore
 }
 type SynchronizerConfig struct {
 	apiKey string
+	Formatter Formatter
 	Store levelDbStore.ITransactionsStore
 }
 
@@ -37,31 +36,24 @@ func (s *Synchronizer) SynchronizeAddress(
 		startTime,
 		endTime,
 	)
-	transactions := make([]*Transaction, len(transactionsHash))
 	if err != nil {
 		return nil, err
 	}
-	requestsStepSize, err := strconv.ParseInt(
-		os.Getenv("BLOCKCHAIN_REQUESTS_LIMIT"),
-		0,
-		64,
-	)
-	if err != nil {
-		log.Panicln("set BLOCKCHAIN_REQUESTS_LIMIT in env")
-	}
+
+	transactions := make([]*Transaction, len(transactionsHash))
 	err = functions.ForWidthBreaks(
 		len(transactionsHash),
-		int(requestsStepSize),
+		env.BLOCKCHAIN_REQUESTS_LIMIT,
 		time.Second,
 		func(wg *sync.WaitGroup, step int) error {
-			transaction, err := transactionFormater.FormatTransactionFromHash(
-				s.apiKey,
-				transactionsHash[step],
-			)
-			if err != nil {
-				return err
-			}
-			transactions[step] = transaction
+			//transaction, err := s.formatter.FormatTransactionFromHash(
+			//	s.apiKey,
+			//	transactionsHash[step],
+			//)
+			//if err != nil {
+			//	return err
+			//}
+			//transactions[step] = transaction
 
 			return nil
 		},

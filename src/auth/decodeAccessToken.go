@@ -3,7 +3,7 @@ package auth
 import (
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwt"
-	"os"
+	"swap.io-agent/src/env"
 )
 
 func DecodeAccessToken(tokenString string) (string,bool) {
@@ -11,7 +11,7 @@ func DecodeAccessToken(tokenString string) (string,bool) {
 		[]byte(tokenString),
 		jwt.WithVerify(
 			jwa.HS256,
-			[]byte(os.Getenv("TOKEN_SECRET")),
+			[]byte(env.SECRET_TOKEN),
 		),
 	)
 	if err != nil {

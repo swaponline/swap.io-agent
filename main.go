@@ -2,10 +2,8 @@ package main
 
 import (
 	"log"
-	"os"
-	"strconv"
 	ethereum "swap.io-agent/src/blockchain/ethereum/blockchainIndexer"
-	"swap.io-agent/src/configLoader"
+	"swap.io-agent/src/env"
 	"swap.io-agent/src/httpHandler"
 	"swap.io-agent/src/httpServer"
 	"swap.io-agent/src/levelDbStore"
@@ -17,8 +15,10 @@ import (
 func main() {
 	registry := serviceRegistry.NewServiceRegistry()
 
-	err := configLoader.InitializeConfig()
-	if err != nil {panic(err)}
+	err := env.InitializeConfig()
+	if err != nil {
+		log.Panicln(err.Error())
+	}
 
 	db, err := redisStore.InitializeDB()
 	if err != nil {
@@ -29,20 +29,10 @@ func main() {
 		log.Panicln(err.Error())
 	}
 
-	blockchainName := os.Getenv("BLOCKCHAIN")
-	if len(blockchainName) == 0 {
-		log.Panicln("SET BLOCKCHAIN SETTINGS IN ENV")
-	}
-	blockchainDefaultScannedBlock, err := strconv.Atoi(
-		os.Getenv("BLOCKCHAIN_DEFAULT_SCANNED_BLOCK"),
-	)
-	if err != nil {
-		log.Panicln("SET BLOCKCHAIN_DEFAULT_SCANNED_BLOCK SETTINGS NUM IN ENV")
-	}
 	transactionStore, err := levelDbStore.InitialiseTransactionStore(
 		levelDbStore.TransactionsStoreConfig{
-			Name: blockchainName,
-			DefaultScannedBlocks: blockchainDefaultScannedBlock,
+			Name: env.BLOCKCHAIN,
+			DefaultScannedBlocks: env.BLOCKCHAIN_DEFAULT_SCANNED_BLOCK,
 		},
 	)
 	if err != nil {
