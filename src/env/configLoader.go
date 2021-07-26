@@ -59,7 +59,7 @@ func InitializeConfig() error {
 	if err != nil {
 		return errors.New("SET BLOCKCHAIN_REQUESTS_LIMIT IN ENV")
 	}
-	BLOCKCHAIN_DEFAULT_SCANNED_BLOCK = blockchainRequestsLimitInt
+	BLOCKCHAIN_REQUESTS_LIMIT = blockchainRequestsLimitInt
 
 	SECRET_TOKEN = os.Getenv("SECRET_TOKEN")
 	if len(SECRET_TOKEN) == 0 {

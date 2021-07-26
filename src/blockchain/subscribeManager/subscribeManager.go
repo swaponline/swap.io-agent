@@ -1,24 +1,20 @@
-package blockchain
+package subscribeManager
 
-import "swap.io-agent/src/redisStore"
+import (
+	"swap.io-agent/src/redisStore"
+)
 
 type SubscribeManager struct {
-	synchroniser struct{}
 	subscribersStore redisStore.ISubscribersStore
-	formatter struct{}
 }
 
 type SubscribeManagerConfig struct {
-	synchroniser struct{}
 	subscribersStore redisStore.ISubscribersStore
-	formatter struct{}
 }
 
-func InitializeSubscribeManager(config SubscribeManagerConfig) SubscribeManager {
-	return SubscribeManager{
-		synchroniser: config.synchroniser,
+func InitializeSubscribeManager(config SubscribeManagerConfig) *SubscribeManager {
+	return &SubscribeManager{
 		subscribersStore: config.subscribersStore,
-		formatter: config.formatter,
 	}
 }
 

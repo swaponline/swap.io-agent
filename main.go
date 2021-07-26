@@ -4,7 +4,9 @@ import (
 	"log"
 	ethereum "swap.io-agent/src/blockchain/ethereum/blockchainIndexer"
 	"swap.io-agent/src/blockchain/ethereum/transactionFormatter"
+	"swap.io-agent/src/blockchain/subscribeManager"
 	"swap.io-agent/src/blockchain/synchronizer"
+	"swap.io-agent/src/blockchain/transactionNotifierPipe"
 	"swap.io-agent/src/env"
 	"swap.io-agent/src/httpHandler"
 	"swap.io-agent/src/httpServer"
@@ -55,9 +57,13 @@ func main() {
 		log.Panicln(err.Error())
 	}
 
+	ethereum.BlockchainIndexerRegister(registry)
+
 	synchronizer.Register(registry)
 
-	ethereum.BlockchainIndexerRegister(registry)
+	transactionNotifierPipe.Register(registry)
+
+	subscribeManager.Register(registry)
 
 	socketServer.Register(registry)
 

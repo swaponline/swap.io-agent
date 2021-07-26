@@ -2,6 +2,7 @@ package synchronizer
 
 import (
 	"swap.io-agent/src/blockchain"
+	"swap.io-agent/src/common/Set"
 	"swap.io-agent/src/common/functions"
 	"swap.io-agent/src/env"
 	"swap.io-agent/src/levelDbStore"
@@ -10,11 +11,12 @@ import (
 )
 
 type Synchronizer struct {
-	formatter blockchain.Formatter
+	formatter blockchain.IFormatter
 	store     levelDbStore.ITransactionsStore
+	sendedTransactions map[string]Set.Set
 }
 type SynchronizerConfig struct {
-	Formatter blockchain.Formatter
+	Formatter blockchain.IFormatter
 	Store     levelDbStore.ITransactionsStore
 }
 
@@ -25,7 +27,24 @@ func InitialiseSynchronizer(config SynchronizerConfig) *Synchronizer {
 	}
 }
 
+func (s *Synchronizer) NotifyAboutSendedTransaction(
+	userId,
+	address,
+	transactionHash string,
+) {
+	key := userId+address
+	if info, ok := s.sendedTransactions[key]; ok {
+	   	if !info.Has("synchronized") {
+			info.Add(transactionHash)
+		}
+	} else {
+		s.sendedTransactions[key] = Set.New()
+		info.Add(transactionHash)
+	}
+}
+
 func (s *Synchronizer) SynchronizeAddress(
+	userId string,
 	address string,
 	startTime int,
 	endTime int,
@@ -58,6 +77,15 @@ func (s *Synchronizer) SynchronizeAddress(
 	)
 	if err != nil {
 		return nil, err
+	}
+
+	if sendedTransactionAddress, exist := s.sendedTransactions[userId+address]; exist {
+		//delIndex := functions.FilterInPlace(transactions, func(t int) bool {
+		//	return sendedTransactionAddress.Has(transactions[t].Hash)
+		//})
+		//transactions = transactions[:delIndex]
+		sendedTransactionAddress.Add("synchronized")
+		return transactions, nil
 	}
 
 	return transactions,nil

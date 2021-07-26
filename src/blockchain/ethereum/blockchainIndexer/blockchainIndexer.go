@@ -7,26 +7,27 @@ import (
 )
 
 type BlockchainIndexer struct {
-	formatter         blockchain.Formatter
+	formatter         blockchain.IFormatter
 	transactionsStore levelDbStore.ITransactionsStore
 	apiKey            string
 	isSynchronize     chan struct{}
-	newTransactions   chan blockchain.Transaction
+	NewTransactions   chan blockchain.Transaction
 }
 
 type BlockchainIndexerConfig struct {
-	Formatter blockchain.Formatter
+	Formatter blockchain.IFormatter
 	TransactionsStore levelDbStore.ITransactionsStore
 }
 
 func InitializeIndexer(config BlockchainIndexerConfig) *BlockchainIndexer {
 	bi := &BlockchainIndexer{
+		formatter: config.Formatter,
 		transactionsStore: config.TransactionsStore,
 		apiKey: env.ETHERSCAN_API_KEY,
 		isSynchronize: make(chan struct{}),
-		newTransactions: make(chan blockchain.Transaction),
+		NewTransactions: make(chan blockchain.Transaction),
 	}
-	bi.RunScanner()
+	//bi.RunScanner()
 
 	return bi
 }

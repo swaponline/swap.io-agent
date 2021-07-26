@@ -1,25 +1,28 @@
-package blockchain
+package transactionNotifierPipe
 
-import "swap.io-agent/src/redisStore"
+import (
+	"swap.io-agent/src/blockchain"
+	"swap.io-agent/src/redisStore"
+)
 
 type TransactionNotifierPipe struct {
-	input            chan Transaction
-	Out              chan TransactionPipeData
+	input            chan blockchain.Transaction
+	Out              chan blockchain.TransactionPipeData
 	subscribersStore redisStore.ISubscribersStore
 	stop             chan bool
 }
 
 type TransactionNotifierPipeConfig struct {
-	Input            chan Transaction
+	Input            chan blockchain.Transaction
 	SubscribersStore redisStore.ISubscribersStore
 }
 
 func InitializeTransactionNotifierPipe(
 	config TransactionNotifierPipeConfig,
-) TransactionNotifierPipe {
-	return TransactionNotifierPipe{
+) *TransactionNotifierPipe {
+	return &TransactionNotifierPipe{
 		input: config.Input,
-		Out: make(chan TransactionPipeData),
+		Out: make(chan blockchain.TransactionPipeData),
 		subscribersStore: config.SubscribersStore,
 	}
 }
@@ -32,7 +35,7 @@ func (tnp *TransactionNotifierPipe) Start() {
 					transaction.AllSpendAddresses,
 				)
 				if len(subscribers) > 0 {
-					tnp.Out <- TransactionPipeData{
+					tnp.Out <- blockchain.TransactionPipeData{
 						Subscribers: subscribers,
 						Transaction: transaction,
 					}

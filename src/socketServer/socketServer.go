@@ -8,13 +8,12 @@ import (
 	"net/http"
 	"swap.io-agent/src/auth"
 	"swap.io-agent/src/blockchain"
-	synchronizer2 "swap.io-agent/src/blockchain/synchronizer"
 	"sync"
 )
 
 type Config struct {
-	synchronizer     synchronizer2.Synchronizer
-	subscribeManager blockchain.SubscribeManager
+	synchronizer     blockchain.ISynchronizer
+	subscribeManager blockchain.ISubscribeManager
 	onNotifyUsers    chan blockchain.TransactionPipeData
 }
 
@@ -42,8 +41,9 @@ func InitializeServer(config Config) *SocketServer {
 		return nil
 	})
 	socketServer.io.OnEvent("/", "subscribe", func(s socketio.Conn, payload SubscribeEventPayload) string {
+		userId := s.Context().(string)
 		err := config.subscribeManager.SubscribeUserToAddress(
-			s.Context().(string),
+			userId,
 			payload.address,
 		)
 		if err != nil {
@@ -55,6 +55,7 @@ func InitializeServer(config Config) *SocketServer {
 			return "error"
 		}
 		transactions, err := config.synchronizer.SynchronizeAddress(
+			userId,
 			payload.address,
 			payload.startTime,
 			payload.endTime,
@@ -88,18 +89,19 @@ func InitializeServer(config Config) *SocketServer {
 	})
 	go func() {
 		for {
-			info := <-config.onNotifyUsers
-			transactionsJson, err := json.Marshal(info.Transaction)
+			transactionInfo := <-config.onNotifyUsers
+			transactionsJson, err := json.Marshal(transactionInfo.Transaction)
 			if err != nil {
 				log.Println("err", err)
 				continue
 			}
-			for _, userId := range info.Subscribers {
+			for _, userId := range transactionInfo.Subscribers {
 				if connection, ok := connections.Load(userId); ok && connection != nil {
 					connection.(socketio.Conn).Emit(
 						"newTransaction",
 						transactionsJson,
 					)
+					//config.synchronizer.NotifyAboutSendedTransaction(userId, info.Transaction.Hash)
 				}
 			}
 		}

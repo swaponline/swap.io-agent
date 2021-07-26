@@ -8,7 +8,30 @@
 </head>
 <body>
 <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
-<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.0/socket.io.js" integrity="sha512-uZgT8PW5iAQw3c9lhW1oRc0VNFiSM0146616kBVLBIJgH5lKZXJ0rGQ/UPbAXVxiUufF82u0INZi0toqS2bUTQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>-->
+<style>
+  body {
+    font-family: sans-serif;
+  }
+</style>
+<div>
+  <form>
+    <h3>subscribe to address</h3>
+    <label>
+      address
+      <input name="address" type="text"/>
+    </label>
+    <br>
+    <label>
+      startTime
+      <input name="startTime" type="number" value="0"/>
+    </label>
+    <br>
+    <label>
+      endTime
+      <input name="endTime" type="number" value=""/>
+    </label>
+  </form>
+</div>
 <script>
 	fetch('/getToken')
 		.then(data => data.text())

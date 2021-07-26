@@ -3,6 +3,7 @@ package ethercsan
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -18,11 +19,13 @@ func GetTransactionLogs(
 		),
 	)
 	if err != nil {
+		log.Println(err)
 		return nil, RequestError
 	}
 
 	var resBody GetTransactionLogsResponse
 	if err := json.NewDecoder(res.Body).Decode(&resBody); err != nil {
+		log.Println(err)
 		return nil, ParseBodyError
 	}
 

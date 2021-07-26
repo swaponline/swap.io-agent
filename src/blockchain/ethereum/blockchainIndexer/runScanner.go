@@ -161,7 +161,7 @@ func (indexer *BlockchainIndexer) RunScanner() {
 }
 
 func formattedBlockTransactions(
-	formatter blockchain.Formatter,
+	formatter blockchain.IFormatter,
 	transactions []api.BlockTransaction,
 	block *api.Block,
 	requestLimitSecond int,
