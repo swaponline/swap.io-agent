@@ -3,9 +3,8 @@ package socketServer
 import "swap.io-agent/src/blockchain"
 
 type SubscribeEventPayload struct {
-	address string
-	startTime int
-	endTime int
+	Address string `json:"address"`
+	StartTime int  `json:"start_time"`
 }
 type SynchroniseAddressData struct {
 	Address string `json:"address"`

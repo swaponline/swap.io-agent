@@ -12,39 +12,119 @@
   body {
     font-family: sans-serif;
   }
+  .content {
+    display: grid;
+    grid-template-columns: 257px 1fr 1fr;
+    grid-column-gap: 10px;
+  }
+
+  .submitForm {
+
+  }
+  .submitForm__btns {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+  }
+
+  .data {}
+  .data__helperText {
+    margin-bottom: 10px;
+    font-size: 16px;
+    font-weight: 500;
+  }
+  .data__value {}
 </style>
 <div>
-  <form>
-    <h3>subscribe to address</h3>
-    <label>
-      address
-      <input name="address" type="text"/>
-    </label>
-    <br>
-    <label>
-      startTime
-      <input name="startTime" type="number" value="0"/>
-    </label>
-    <br>
-    <label>
-      endTime
-      <input name="endTime" type="number" value=""/>
-    </label>
-  </form>
-</div>
-<script>
-	fetch('/getToken')
-		.then(data => data.text())
-		.then((token) => {
-			const socket = io("/", {
-				transports: ['websocket'],
-        query: {
-				 	token
+  <div class="content">
+    <form id="submitForm">
+      <h3>subscribe to address</h3>
+      <label>
+        address
+        <input name="address" style="margin-left: 10px" type="text"/>
+      </label>
+      <br>
+      <label>
+        startTime
+        <input name="startTime" type="number" value="0"/>
+      </label>
+      <div class="submitForm__btns">
+        <button>emit</button>
+      </div>
+    </form>
+    <div id="submittedData">
+    </div>
+    <div id="acceptedData">
+    </div>
+  </div>
+  <script>
+		const insertDataBlock = (target, helperText, value) => {
+			const dataEl = document.createElement('div')
+
+			const dataHelperTextEl       = document.createElement('div')
+			dataHelperTextEl.className   = 'data__helperText'
+			dataHelperTextEl.textContent = helperText
+
+			const dataValueEl           = document.createElement('pre')
+			dataValueEl.className = 'data__value'
+			dataValueEl.append(JSON.stringify(value, null, 2))
+
+			dataEl.append(dataHelperTextEl)
+			dataEl.append(dataValueEl)
+			target.append(dataEl)
+		}
+    document.body.onload = async () => {
+			await (
+				fetch('/getToken')
+				.then(data => data.text())
+				.then((token) => {
+					const socket = io("/", {
+						transports: ['websocket'],
+						query: {
+							token
+						}
+					});
+					console.log(token, socket);
+					window.socket = socket;
+				})
+      )
+
+			const submitFormEl    = document.querySelector('#submitForm')
+			const submittedDataEl = document.querySelector('#submittedData')
+			const acceptedDataEl  = document.querySelector('#acceptedData')
+
+			submitFormEl.addEventListener('submit', (event) => {
+				const target = event.target
+
+				const data = {
+					address: target.address.value,
+					startTime: +target.startTime.value
 				}
-			});
-			console.log(token, socket);
-			window.socket = socket;
-		})
-</script>
+				insertDataBlock(
+					submittedDataEl,
+          `subscribe address - ${data.address}`,
+          data
+        )
+        socket.emit("subscribe", data, (transactionsInfo) => {
+        	insertDataBlock(
+        		acceptedDataEl,
+            `synchronized transactions address - ${data.address}`,
+            JSON.parse(transactionsInfo)
+          )
+        })
+
+				event.preventDefault()
+			})
+      socket.on('newTransaction', (data) => {
+      	data = JSON.parse(data)
+        insertDataBlock(
+        	acceptedDataEl,
+          `new transaction`,
+          JSON.parse(data)
+        )
+      })
+    }
+  </script>
+</div>
 </body>
 </html>

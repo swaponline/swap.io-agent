@@ -9,6 +9,7 @@ import (
 	"swap.io-agent/src/auth"
 	"swap.io-agent/src/blockchain"
 	"sync"
+	"time"
 )
 
 type Config struct {
@@ -41,10 +42,11 @@ func InitializeServer(config Config) *SocketServer {
 		return nil
 	})
 	socketServer.io.OnEvent("/", "subscribe", func(s socketio.Conn, payload SubscribeEventPayload) string {
-		userId := s.Context().(string)
+		userId  := s.Context().(string)
+		endTime := int(time.Now().Unix())
 		err := config.subscribeManager.SubscribeUserToAddress(
 			userId,
-			payload.address,
+			payload.Address,
 		)
 		if err != nil {
 			log.Println(
@@ -56,20 +58,22 @@ func InitializeServer(config Config) *SocketServer {
 		}
 		transactions, err := config.synchronizer.SynchronizeAddress(
 			userId,
-			payload.address,
-			payload.startTime,
-			payload.endTime,
+			payload.Address,
+			payload.StartTime,
+			endTime,
 		)
 		if err != nil {
+			log.Println(err)
 			return "error"
 		}
 
 		if data, err := json.Marshal(SynchroniseAddressData{
 			Transactions: transactions,
-			Address: payload.address,
+			Address: payload.Address,
 		}); err == nil {
 			return string(data)
 		} else {
+			log.Println(err)
 			return "error"
 		}
 	})
@@ -101,7 +105,6 @@ func InitializeServer(config Config) *SocketServer {
 						"newTransaction",
 						transactionsJson,
 					)
-					//config.synchronizer.NotifyAboutSendedTransaction(userId, info.Transaction.Hash)
 				}
 			}
 		}

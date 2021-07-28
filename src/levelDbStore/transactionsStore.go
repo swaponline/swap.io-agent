@@ -68,7 +68,7 @@ func (ts *TransactionsStore) GetAddressTransactionsHash(
 	transactionsInfoBytes, err := ts.db.Get([]byte(address), nil)
 	if err != nil {
 		if err == leveldb.ErrNotFound {
-			return make([]string, 0), err
+			return make([]string, 0), nil
 		}
 		return nil, err
 	}
