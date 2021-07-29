@@ -1,4 +1,4 @@
-package ethercsan
+package transactionFormatter
 
 import (
 	"strings"

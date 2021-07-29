@@ -29,8 +29,7 @@ func (indexer *BlockchainIndexer) RunScanner() {
 		lockerChange := new(sync.Mutex)
 		for t:=0; t<requestsStepLen; t++ {
 			go func(blockIndex int, ItemIndexInBufIndexedBlocks int) {
-				block, err := ethercsan.GetBlockByIndex(
-					indexer.apiKey,
+				block, err := indexer.api.GetBlockByIndex(
 					blockIndex,
 				)
 				if err == ethercsan.NotExistBlockError {
@@ -114,8 +113,7 @@ func (indexer *BlockchainIndexer) RunScanner() {
 
 	for {
 		nextBlock := indexer.transactionsStore.GetLastTransactionBlock() + 1
-		block, err := ethercsan.GetBlockByIndex(
-			indexer.apiKey,
+		block, err := indexer.api.GetBlockByIndex(
 			nextBlock,
 		)
 		switch err {

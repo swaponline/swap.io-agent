@@ -10,13 +10,14 @@ import (
 	"swap.io-agent/src/blockchain/ethereum/api"
 )
 
-func GetBlockByIndex(apiKey string, index int) (*api.Block,int) {
+func (e *Etherscan) GetBlockByIndex(index int) (*api.Block,int) {
 	log.Println("get block", index, "0x"+strconv.FormatInt(int64(index), 16))
 	res, err := http.Get(
 		fmt.Sprintf(
-			"https://api.etherscan.io/api?tag=%v&boolean=true&apikey=%v&action=eth_getBlockByNumber&module=proxy",
+			"%v/api?boolean=true&apikey=%v&tag=%v&action=eth_getBlockByNumber&module=proxy",
+			e.baseUrl,
+			e.apiKey,
 			"0x"+strconv.FormatInt(int64(index), 16),
-			apiKey,
 		),
 	)
 	if err != nil {return nil, RequestError}

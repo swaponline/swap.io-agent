@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/syndtr/goleveldb/leveldb"
+	"log"
 	"strconv"
 	"strings"
 )
@@ -104,6 +105,7 @@ func (ts *TransactionsStore) WriteLastIndexedBlockTransactions(
 	if err != nil {
 		return err
 	}
+	log.Println(indexedTransactions)
 	for address, transactions := range *indexedTransactions {
 		//format transactions
 		formattedTransactions := make([]string, len(transactions))

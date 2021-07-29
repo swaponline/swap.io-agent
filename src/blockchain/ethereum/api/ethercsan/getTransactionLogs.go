@@ -5,17 +5,18 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"swap.io-agent/src/blockchain/ethereum/api"
 )
 
-func GetTransactionLogs(
-	apiKey string,
+func (e *Etherscan) GetTransactionLogs(
 	hash string,
-) (*GetTransactionLogsResponse, int) {
+) (*api.TransactionLogs, int) {
 	res, err := http.Get(
 		fmt.Sprintf(
-			"https://api.etherscan.io/api?module=proxy&action=eth_getTransactionReceipt&txhash=%v&apikey=%v",
+			"%v/api?module=proxy&action=eth_getTransactionReceipt&apikey=%v&txhash=%v",
+			e.baseUrl,
+			e.apiKey,
 			hash,
-			apiKey,
 		),
 	)
 	if err != nil {
@@ -29,5 +30,5 @@ func GetTransactionLogs(
 		return nil, ParseBodyError
 	}
 
-	return &resBody, RequestSuccess
+	return &resBody.Result, RequestSuccess
 }

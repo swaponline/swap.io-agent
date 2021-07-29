@@ -8,11 +8,12 @@ import (
 	"strings"
 )
 
-func GetCurrentIndexBlock(apiKey string) (int,int) {
+func (e *Etherscan) GetCurrentIndexBlock() (int,int) {
 	res, err := http.Get(
 		fmt.Sprintf(
-			"https://api.etherscan.io/api?module=proxy&action=eth_blockNumber&apikey=%v",
-			apiKey,
+			"%v/api?module=proxy&action=eth_blockNumber&apikey=%v",
+			e.baseUrl,
+			e.apiKey,
 		),
 	)
 	if err != nil {return 0, RequestError}

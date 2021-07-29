@@ -6,6 +6,7 @@ import (
 	"math/big"
 	"strconv"
 	"swap.io-agent/src/blockchain"
+	"swap.io-agent/src/blockchain/ethereum"
 	"swap.io-agent/src/blockchain/ethereum/api"
 	"swap.io-agent/src/blockchain/ethereum/api/ethercsan"
 	journal "swap.io-agent/src/blockchain/journal"
@@ -14,20 +15,22 @@ import (
 const ETH = "ETH"
 
 type TransactionFormatter struct {
-	apiKey string
+	api ethereum.IGeth
 }
 type TransactionFormatterConfig struct {
-	ApiKey string
+	Api ethereum.IGeth
 }
 
 func InitializeTransactionFormatter(config TransactionFormatterConfig)*TransactionFormatter {
-	return &TransactionFormatter{apiKey: config.ApiKey}
+	return &TransactionFormatter{
+		api: config.Api,
+	}
 }
 
 func (tf *TransactionFormatter) FormatTransactionFromHash(
 	hash string,
 ) (*blockchain.Transaction, error) {
-	transaction, err := ethercsan.GetTransactionByHash(tf.apiKey, hash)
+	transaction, err := tf.api.GetTransactionByHash(hash)
 	if err != ethercsan.RequestSuccess {
 		return nil, errors.New(
 			fmt.Sprintf("not get transaction by hash %v", hash),
@@ -38,7 +41,7 @@ func (tf *TransactionFormatter) FormatTransactionFromHash(
 	if errConv != nil {
 		return nil, errConv
 	}
-	blockTransaction, err := ethercsan.GetBlockByIndex(tf.apiKey, transactionBlockIndex)
+	blockTransaction, err := tf.api.GetBlockByIndex(transactionBlockIndex)
 	if err != ethercsan.RequestSuccess {
 		return nil, errors.New(
 			fmt.Sprintf("not get transaction block by index %v", err),
@@ -51,8 +54,7 @@ func (tf *TransactionFormatter) FormatTransaction(
 	blockTransaction *api.BlockTransaction,
 	block *api.Block,
 ) (*blockchain.Transaction, error) {
-	transactionLogs, errReq := ethercsan.GetTransactionLogs(
-		tf.apiKey,
+	transactionLogs, errReq := tf.api.GetTransactionLogs(
 		blockTransaction.Hash,
 	)
 	if errReq != ethercsan.RequestSuccess {
@@ -62,7 +64,7 @@ func (tf *TransactionFormatter) FormatTransaction(
 	}
 
 	transactionGasUsed, ok  := new(big.Int).SetString(
-		transactionLogs.Result.GasUsed, 0,
+		transactionLogs.GasUsed, 0,
 	)
 	if !ok {
 		return nil, errors.New("transactionLogs.Result.GasUsed not parsed")
@@ -98,8 +100,8 @@ func (tf *TransactionFormatter) FormatTransaction(
 		Value: blockTransaction.Value,
 	})
 
-	err := ethercsan.AddSpendsFromLogsToJournal(
-		transactionLogs.Result.Logs,
+	err := AddSpendsFromLogsToJournal(
+		transactionLogs.Logs,
 		transactionJournal,
 	)
 	if err != nil {
@@ -112,7 +114,7 @@ func (tf *TransactionFormatter) FormatTransaction(
 		To:   blockTransaction.To,
 		Gas:  blockTransaction.Gas,
 		GasPrice: blockTransaction.GasPrice,
-		GasUsed: transactionLogs.Result.GasUsed,
+		GasUsed: transactionLogs.GasUsed,
 		Value: blockTransaction.Value,
 		Timestamp: block.Timestamp,
 		TransactionIndex: blockTransaction.TransactionIndex,

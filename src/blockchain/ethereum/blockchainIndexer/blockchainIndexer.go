@@ -2,40 +2,41 @@ package ethereum
 
 import (
 	"swap.io-agent/src/blockchain"
-	"swap.io-agent/src/env"
+	"swap.io-agent/src/blockchain/ethereum"
 	"swap.io-agent/src/levelDbStore"
 )
 
 type BlockchainIndexer struct {
+	api               ethereum.IGeth
 	formatter         blockchain.IFormatter
 	transactionsStore levelDbStore.ITransactionsStore
-	apiKey            string
 	isSynchronize     chan struct{}
 	NewTransactions   chan blockchain.Transaction
 }
 
 type BlockchainIndexerConfig struct {
+	Api ethereum.IGeth
 	Formatter blockchain.IFormatter
 	TransactionsStore levelDbStore.ITransactionsStore
 }
 
 func InitializeIndexer(config BlockchainIndexerConfig) *BlockchainIndexer {
 	bi := &BlockchainIndexer{
+		api: config.Api,
 		formatter: config.Formatter,
 		transactionsStore: config.TransactionsStore,
-		apiKey: env.ETHERSCAN_API_KEY,
 		isSynchronize: make(chan struct{}),
 		NewTransactions: make(chan blockchain.Transaction),
 	}
-	//bi.RunScanner()
+	bi.RunScanner()
 
 	return bi
 }
 
-func (_ *BlockchainIndexer) Start()  {}
-func (_ *BlockchainIndexer) Stop() error {
+func (*BlockchainIndexer) Start()  {}
+func (*BlockchainIndexer) Stop() error {
 	return nil
 }
-func (_ *BlockchainIndexer) Status() error {
+func (*BlockchainIndexer) Status() error {
 	return nil
 }
