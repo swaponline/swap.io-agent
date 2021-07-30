@@ -47,6 +47,9 @@ func (e *Etherscan) GetBlockByIndex(index int) (*api.Block,int) {
 		log.Println(err)
 		return nil, ParseBodyError
 	}
+	if &resData.Result == nil {
+		return nil, NotExistBlockError
+	}
 
 	return &resData.Result, RequestSuccess
 }

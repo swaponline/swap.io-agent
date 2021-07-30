@@ -25,7 +25,7 @@ func (indexer *BlockchainIndexer) RunScanner() {
 		waits := new(sync.WaitGroup)
 		waits.Add(requestsStepLen)
 
-		bufIndexedBlocks := make([]indexedBlock, requestsStepLen)
+		bufIndexedBlocks := make([]*indexedBlock, requestsStepLen)
 		lockerChange := new(sync.Mutex)
 		for t:=0; t<requestsStepLen; t++ {
 			go func(blockIndex int, ItemIndexInBufIndexedBlocks int) {
@@ -69,7 +69,7 @@ func (indexer *BlockchainIndexer) RunScanner() {
 				}
 				indexedTransactions := make(map[string][]string)
 				indexingTransactions(&indexedTransactions, transactions)
-				bufIndexedBlocks[ItemIndexInBufIndexedBlocks] = indexedBlock{
+				bufIndexedBlocks[ItemIndexInBufIndexedBlocks] = &indexedBlock{
 					transactions: &indexedTransactions,
 					index: blockIndex,
 					timestamp: int(blockTimestamp),
@@ -83,18 +83,20 @@ func (indexer *BlockchainIndexer) RunScanner() {
 		waits.Wait()
 
 		for _, indexedBlock := range bufIndexedBlocks {
-			err := indexer.transactionsStore.WriteLastIndexedBlockTransactions(
-				indexedBlock.transactions,
-				indexedBlock.index,
-				indexedBlock.timestamp,
-			)
-			if err != nil {
-				log.Panicf("not write block transaction %v", err)
+			if indexedBlock != nil {
+				err := indexer.transactionsStore.WriteLastIndexedBlockTransactions(
+					indexedBlock.transactions,
+					indexedBlock.index,
+					indexedBlock.timestamp,
+				)
+				if err != nil {
+					log.Panicf("not write block transaction %v", err)
+				}
+				log.Printf(
+					"last block indexed - %v",
+					indexer.transactionsStore.GetLastTransactionBlock(),
+				)
 			}
-			log.Printf(
-				"last block indexed - %v",
-				indexer.transactionsStore.GetLastTransactionBlock(),
-			)
 		}
 
 		//pending
