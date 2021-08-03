@@ -13,17 +13,23 @@ type IGetPutLevelDb interface {
 
 func ArrayStringPush(db IGetPutLevelDb, key string, value []string) error {
 	keyValue, err := db.Get([]byte(key), nil)
-	if err != leveldb.ErrNotFound {
+	if err != nil && err != leveldb.ErrNotFound {
 		return err
 	}
 
-	newKeyValue := strings.Join(
-		append(
-			strings.Split(string(keyValue), " "),
-			value...
-		),
-		" ",
-	)
+	var newKeyValue string
+	if len(keyValue) == 0 {
+		newKeyValue = strings.Join(value, " ")
+	} else {
+		newKeyValue = strings.Join(
+			append(
+				strings.Split(string(keyValue), " "),
+				value...
+			),
+			" ",
+		)
+	}
+
 
 	return db.Put(
 		[]byte(key),

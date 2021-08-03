@@ -37,7 +37,6 @@ func (indexer *BlockchainIndexer) RunScanner() {
 					lockerChange.Lock()
 					if !isSynchronize {
 						isSynchronize = true
-						close(indexer.isSynchronize)
 					}
 					lockerChange.Unlock()
 					waits.Done()
@@ -107,11 +106,13 @@ func (indexer *BlockchainIndexer) RunScanner() {
 		}
 	}
 
+
 	log.Println("Blockchain synchronize ***")
 	log.Println(
 		"last block - indexed",
 		indexer.transactionsStore.GetLastTransactionBlock(),
 	)
+	close(indexer.isSynchronize)
 
 	for {
 		nextBlock := indexer.transactionsStore.GetLastTransactionBlock() + 1
@@ -120,13 +121,19 @@ func (indexer *BlockchainIndexer) RunScanner() {
 		)
 		switch err {
 			case ethercsan.RequestSuccess: {
-				blockTimestamp, errConv := strconv.Atoi(block.Timestamp)
+				blockTimestamp, errConv := strconv.ParseInt(
+					block.Timestamp,
+					0,
+					64,
+				)
 				if errConv != nil {
 					log.Panicln(
 						"block timestamp invalid",
 						errConv,
 					)
 				}
+
+				<-time.After(time.Second)
 
 				transactions, fErr := formattedBlockTransactions(
 					indexer.formatter,
@@ -143,7 +150,7 @@ func (indexer *BlockchainIndexer) RunScanner() {
 				err := indexer.transactionsStore.WriteLastIndexedBlockTransactions(
 					&indexedTransactions,
 					nextBlock,
-					blockTimestamp,
+					int(blockTimestamp),
 				)
 				if err != nil {
 					log.Panicf("not write block transaction %v", err)

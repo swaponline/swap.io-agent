@@ -3,6 +3,7 @@ package ethercsan
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"swap.io-agent/src/blockchain/ethereum/api"
@@ -24,9 +25,15 @@ func (e *Etherscan) GetTransactionLogs(
 		return nil, RequestError
 	}
 
-	var resBody GetTransactionLogsResponse
-	if err := json.NewDecoder(res.Body).Decode(&resBody); err != nil {
+	resBodyBytes, err := io.ReadAll(res.Body)
+	if err != nil {
 		log.Println(err)
+		return nil,ParseBodyError
+	}
+
+	var resBody GetTransactionLogsResponse
+	if err := json.Unmarshal(resBodyBytes, &resBody); err != nil {
+		log.Println(err, string(resBodyBytes))
 		return nil, ParseBodyError
 	}
 

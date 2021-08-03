@@ -56,6 +56,7 @@ func InitializeServer(config Config) *SocketServer {
 			)
 			return "error"
 		}
+		log.Println(payload)
 		transactions, err := config.synchronizer.SynchronizeAddress(
 			userId,
 			payload.Address,

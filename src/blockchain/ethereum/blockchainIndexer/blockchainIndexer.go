@@ -28,7 +28,9 @@ func InitializeIndexer(config BlockchainIndexerConfig) *BlockchainIndexer {
 		isSynchronize: make(chan struct{}),
 		NewTransactions: make(chan blockchain.Transaction),
 	}
-	bi.RunScanner()
+
+	//go bi.RunScanner()
+	//<-bi.isSynchronize
 
 	return bi
 }
