@@ -146,7 +146,6 @@ func (indexer *BlockchainIndexer) RunScanner() {
 				}
 				indexedTransactions := make(map[string][]string)
 				indexingTransactions(&indexedTransactions, transactions)
-
 				err := indexer.transactionsStore.WriteLastIndexedBlockTransactions(
 					&indexedTransactions,
 					nextBlock,
@@ -154,6 +153,9 @@ func (indexer *BlockchainIndexer) RunScanner() {
 				)
 				if err != nil {
 					log.Panicf("not write block transaction %v", err)
+				}
+				for _, transaction := range transactions {
+					indexer.NewTransactions <- transaction
 				}
 				log.Printf(
 					"block indexed - %v",

@@ -41,6 +41,7 @@ func (tnp *TransactionNotifierPipe) Start() {
 					}
 				}
 			}
+
 			case <- tnp.stop: {
 				exit = true
 			}
