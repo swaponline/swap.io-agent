@@ -8,7 +8,6 @@ import (
 	"swap.io-agent/src/blockchain"
 	"swap.io-agent/src/blockchain/ethereum"
 	"swap.io-agent/src/blockchain/ethereum/api"
-	"swap.io-agent/src/blockchain/ethereum/api/ethercsan"
 	journal "swap.io-agent/src/blockchain/journal"
 )
 
@@ -31,7 +30,7 @@ func (tf *TransactionFormatter) FormatTransactionFromHash(
 	hash string,
 ) (*blockchain.Transaction, error) {
 	transaction, err := tf.api.GetTransactionByHash(hash)
-	if err != ethercsan.RequestSuccess {
+	if err != api.RequestSuccess {
 		return nil, errors.New(
 			fmt.Sprintf("not get transaction by hash %v", hash),
 		)
@@ -42,7 +41,7 @@ func (tf *TransactionFormatter) FormatTransactionFromHash(
 		return nil, errConv
 	}
 	blockTransaction, err := tf.api.GetBlockByIndex(transactionBlockIndex)
-	if err != ethercsan.RequestSuccess {
+	if err != api.RequestSuccess {
 		return nil, errors.New(
 			fmt.Sprintf("not get transaction block by index %v", err),
 		)
@@ -57,7 +56,7 @@ func (tf *TransactionFormatter) FormatTransaction(
 	transactionLogs, errReq := tf.api.GetTransactionLogs(
 		blockTransaction.Hash,
 	)
-	if errReq != ethercsan.RequestSuccess {
+	if errReq != api.RequestSuccess {
 		return nil, errors.New(fmt.Sprintf(
 			"not get transactionLogs error - %v", errReq,
 		))

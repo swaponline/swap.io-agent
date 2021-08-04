@@ -1,22 +1,30 @@
-package ethercsan
+package geth
 
 import (
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"swap.io-agent/src/blockchain/ethereum/api"
 )
 
-func (e *Etherscan) GetTransactionByHash(
+func (e *Geth) GetTransactionByHash(
 	hash string,
 ) (*api.BlockTransaction, int) {
-	res, err := http.Get(
-		fmt.Sprintf(
-			"%v/api?module=proxy&action=eth_getTransactionByHash&apikey=%v&txhash=%v",
-			e.baseUrl,
-			e.apiKey,
-			hash,
+	res, err := http.Post(
+		e.baseUrl,
+		"application/json",
+		strings.NewReader(
+			fmt.Sprintf(
+				`{
+					"jsonrpc":"2.0",
+					"method":"eth_getTransactionByHash",
+					"params":["%v"],
+					"id":1
+				}`,
+				hash,
+			),
 		),
 	)
 	if err != nil {

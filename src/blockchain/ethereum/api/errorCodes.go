@@ -1,4 +1,4 @@
-package ethercsan
+package api
 
 const (
 	RequestSuccess             = iota

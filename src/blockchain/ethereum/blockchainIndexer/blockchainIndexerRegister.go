@@ -2,14 +2,14 @@ package ethereum
 
 import (
 	"log"
-	"swap.io-agent/src/blockchain/ethereum/api/ethercsan"
+	"swap.io-agent/src/blockchain/ethereum/api/geth"
 	"swap.io-agent/src/blockchain/ethereum/transactionFormatter"
 	"swap.io-agent/src/levelDbStore"
 	"swap.io-agent/src/serviceRegistry"
 )
 
 func BlockchainIndexerRegister(reg *serviceRegistry.ServiceRegistry) {
-	var api *ethercsan.Etherscan
+	var api *geth.Geth
 	err := reg.FetchService(&api)
 	if err != nil {
 		log.Panicln(err)

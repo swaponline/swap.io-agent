@@ -2,7 +2,7 @@ package main
 
 import (
 	"log"
-	"swap.io-agent/src/blockchain/ethereum/api/ethercsan"
+	"swap.io-agent/src/blockchain/ethereum/api/geth"
 	ethereum "swap.io-agent/src/blockchain/ethereum/blockchainIndexer"
 	"swap.io-agent/src/blockchain/ethereum/transactionFormatter"
 	"swap.io-agent/src/blockchain/subscribeManager"
@@ -48,7 +48,7 @@ func main() {
 		log.Panicln(err.Error())
 	}
 
-	api := ethercsan.InitializeEthercsan()
+	api := geth.InitializeGeth()
 	err = registry.RegisterService(
 		api,
 	)

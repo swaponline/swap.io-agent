@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"swap.io-agent/src/blockchain"
 	"swap.io-agent/src/blockchain/ethereum/api"
-	"swap.io-agent/src/blockchain/ethereum/api/ethercsan"
 	"swap.io-agent/src/env"
 	"sync"
 	"time"
@@ -32,7 +31,7 @@ func (indexer *BlockchainIndexer) RunScanner() {
 				block, err := indexer.api.GetBlockByIndex(
 					blockIndex,
 				)
-				if err == ethercsan.NotExistBlockError {
+				if err == api.NotExistBlockError {
 					// if notExistBlockErr then scan synchronize
 					lockerChange.Lock()
 					if !isSynchronize {
@@ -41,7 +40,7 @@ func (indexer *BlockchainIndexer) RunScanner() {
 					lockerChange.Unlock()
 					waits.Done()
 					return
-				} else if err != ethercsan.RequestSuccess {
+				} else if err != api.RequestSuccess {
 					log.Panicln(err, "error code ethercsan")
 				}
 				blockTimestamp, errConv := strconv.ParseInt(block.Timestamp, 0, 64)
@@ -120,7 +119,7 @@ func (indexer *BlockchainIndexer) RunScanner() {
 			nextBlock,
 		)
 		switch err {
-			case ethercsan.RequestSuccess: {
+			case api.RequestSuccess: {
 				blockTimestamp, errConv := strconv.ParseInt(
 					block.Timestamp,
 					0,
@@ -162,7 +161,7 @@ func (indexer *BlockchainIndexer) RunScanner() {
 					indexer.transactionsStore.GetLastTransactionBlock(),
 				)
 			}
-			case ethercsan.NotExistBlockError: {}
+			case api.NotExistBlockError: {}
 			default: log.Panicln(err, "error code ethercsan request ethercsan.GetBlockByIndex")
 		}
 		<-time.After(time.Second * 1)

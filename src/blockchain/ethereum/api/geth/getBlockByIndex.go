@@ -1,4 +1,4 @@
-package ethercsan
+package geth
 
 import (
 	"encoding/json"
@@ -7,17 +7,26 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"swap.io-agent/src/blockchain/ethereum/api"
 )
 
-func (e *Etherscan) GetBlockByIndex(index int) (*api.Block,int) {
+
+func (e *Geth) GetBlockByIndex(index int) (*api.Block,int) {
 	log.Println("get block", index, "0x"+strconv.FormatInt(int64(index), 16))
-	res, err := http.Get(
-		fmt.Sprintf(
-			"%v/api?boolean=true&apikey=%v&tag=%v&action=eth_getBlockByNumber&module=proxy",
-			e.baseUrl,
-			e.apiKey,
-			"0x"+strconv.FormatInt(int64(index), 16),
+	res, err := http.Post(
+		e.baseUrl,
+		"application/json",
+		strings.NewReader(
+			fmt.Sprintf(
+				`{
+					"jsonrpc":"2.0",
+					"method":"eth_getBlockByNumber",
+                    "params":["%v", true],
+					"id":1}
+				`,
+				"0x"+strconv.FormatInt(int64(index), 16),
+			),
 		),
 	)
 	if err != nil {return nil, api.RequestError
@@ -37,8 +46,8 @@ func (e *Etherscan) GetBlockByIndex(index int) (*api.Block,int) {
 		}
 		// if error parsed width empty filed then block not exit
 		if resError.Result  == "" &&
-		   resError.Status  == "" &&
-		   resError.Message == "" {
+			resError.Status  == "" &&
+			resError.Message == "" {
 			return nil, api.NotExistBlockError
 		}
 		return nil, api.RequestError
