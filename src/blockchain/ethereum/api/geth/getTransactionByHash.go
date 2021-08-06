@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 	"swap.io-agent/src/blockchain/ethereum/api"
@@ -30,16 +31,19 @@ func (e *Geth) GetTransactionByHash(
 	if err != nil {
 		return nil, api.RequestError
 	}
+	defer res.Body.Close()
 
-	resBody, err := io.ReadAll(res.Body)
+	resBodyBytes, err := io.ReadAll(res.Body)
 	if err != nil {
+		log.Println(err)
 		return nil, api.ParseBodyError
 	}
 
-	var resData getTransactionByHashResponse
-	if err := json.Unmarshal(resBody, &resData); err != nil {
+	var resBody getTransactionByHashResponse
+	if err := json.Unmarshal(resBodyBytes, &resBody); err != nil {
+		log.Println(err, string(resBodyBytes))
 		return nil, api.RequestError
 	}
 
-	return &resData.Result, api.RequestSuccess
+	return &resBody.Result, api.RequestSuccess
 }

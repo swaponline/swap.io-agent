@@ -23,24 +23,29 @@ func (e *Geth) GetBlockByIndex(index int) (*api.Block,int) {
 					"jsonrpc":"2.0",
 					"method":"eth_getBlockByNumber",
                     "params":["%v", true],
-					"id":1}
-				`,
+					"id":1
+				}`,
 				"0x"+strconv.FormatInt(int64(index), 16),
 			),
 		),
 	)
-	if err != nil {return nil, api.RequestError
-	}
-
-	resBody, err := io.ReadAll(res.Body)
 	if err != nil {
+		log.Println(err)
+		return nil, api.RequestError
+	}
+	defer res.Body.Close()
+
+	resBodyBytes, err := io.ReadAll(res.Body)
+	if err != nil {
+		log.Println(err)
 		return nil, api.ParseBodyError
 	}
 	var resError apiError
-	var resData getBlockResponse
+	var resBody getBlockResponse
 
 	// insert in error struct
-	if err = json.Unmarshal(resBody, &resError); err == nil {
+	if err = json.Unmarshal(resBodyBytes, &resError); err == nil {
+		log.Println(err, string(resBodyBytes))
 		if resError.Result == "Max rate limit reached" {
 			return nil, api.RequestLimitError
 		}
@@ -53,13 +58,14 @@ func (e *Geth) GetBlockByIndex(index int) (*api.Block,int) {
 		return nil, api.RequestError
 	}
 
-	if err = json.Unmarshal(resBody, &resData); err != nil {
-		log.Println(err)
+	if err = json.Unmarshal(resBodyBytes, &resBody); err != nil {
+		log.Println(err, string(resBodyBytes))
 		return nil, api.ParseBodyError
 	}
-	if &resData.Result == nil {
+	if &resBody.Result == nil {
+		log.Println(string(resBodyBytes))
 		return nil, api.NotExistBlockError
 	}
 
-	return &resData.Result, api.RequestSuccess
+	return &resBody.Result, api.RequestSuccess
 }

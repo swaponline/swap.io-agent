@@ -113,7 +113,7 @@ func (ts *TransactionsStore) WriteLastIndexedBlockTransactions(
 			)
 		}
 		// push back address transaction|timestampBlock
-		err = ArrayStringPush(
+		err = LinkedListPush(
 			bdTransaction, address, formattedTransactions,
 		)
 		if err != nil {

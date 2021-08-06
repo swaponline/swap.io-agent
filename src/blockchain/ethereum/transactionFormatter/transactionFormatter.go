@@ -1,8 +1,10 @@
 package transactionFormatter
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"math/big"
 	"strconv"
 	"swap.io-agent/src/blockchain"
@@ -66,13 +68,25 @@ func (tf *TransactionFormatter) FormatTransaction(
 		transactionLogs.GasUsed, 0,
 	)
 	if !ok {
-		return nil, errors.New("transactionLogs.Result.GasUsed not parsed")
+		if bytes, err := json.Marshal(transactionLogs); err != nil {
+			log.Println(string(bytes))
+		}
+		return nil, errors.New(fmt.Sprintf(
+			"transactionLogs.Result.GasUsed(%v) not parsed %v",
+			transactionLogs.GasUsed,
+			ok,
+		))
 	}
 	transactionGasPrice, ok := new(big.Int).SetString(
 		blockTransaction.GasPrice, 0,
 	)
 	if !ok {
-		return nil, errors.New("blockTransaction.GasPrice not parsed")
+		return nil, errors.New(
+			fmt.Sprintf(
+				"blockTransaction.GasPrice(%v) not parsed",
+				blockTransaction.GasPrice,
+			),
+		)
 	}
 
 	transactionFee := big.NewInt(0).Mul(
@@ -80,24 +94,39 @@ func (tf *TransactionFormatter) FormatTransaction(
 	).Text(16)
 
 	transactionJournal := journal.New("ethereum")
-	transactionJournal.Add(ETH, blockchain.Spend{
-		Wallet: blockTransaction.From,
-		Value: `-`+blockTransaction.Value,
-	})
-	transactionJournal.Add(ETH, blockchain.Spend{
-		Wallet: blockTransaction.From,
-		Value: `-`+transactionFee,
-		Label: "Transaction fee",
-	})
-	transactionJournal.Add(ETH, blockchain.Spend{
-		Wallet: block.Miner,
-		Value: transactionFee,
-		Label: "Transaction fee",
-	})
-	transactionJournal.Add(ETH, blockchain.Spend{
-		Wallet: blockTransaction.To,
-		Value: blockTransaction.Value,
-	})
+	//if len(blockTransaction.From) == 0 {
+	//	log.Panicln(blockTransaction.Hash, blockTransaction.From, "FROM")
+	//}
+	//if len(block.Miner) == 0 {
+	//	log.Panicln(blockTransaction.Hash, block.Miner, "MINER")
+	//}
+	//if len(blockTransaction.To) == 0 {
+	//	log.Panicln(blockTransaction.Hash, block.Number, blockTransaction.To, "TO")
+	//}
+	if len(blockTransaction.From) > 0 {
+		transactionJournal.Add(ETH, blockchain.Spend{
+			Wallet: blockTransaction.From,
+			Value: `-`+blockTransaction.Value,
+		})
+		transactionJournal.Add(ETH, blockchain.Spend{
+			Wallet: blockTransaction.From,
+			Value: `-`+transactionFee,
+			Label: "Transaction fee",
+		})
+	}
+	if len(block.Miner) > 0 {
+		transactionJournal.Add(ETH, blockchain.Spend{
+			Wallet: block.Miner,
+			Value: transactionFee,
+			Label: "Transaction fee",
+		})
+	}
+	if len(blockTransaction.To) > 0 {
+		transactionJournal.Add(ETH, blockchain.Spend{
+			Wallet: blockTransaction.To,
+			Value: blockTransaction.Value,
+		})
+	}
 
 	err := AddSpendsFromLogsToJournal(
 		transactionLogs.Logs,

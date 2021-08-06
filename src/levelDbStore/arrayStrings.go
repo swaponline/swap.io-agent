@@ -7,33 +7,39 @@ import (
 )
 
 type IGetPutLevelDb interface {
+	Has([]byte, *opt.ReadOptions) (bool, error)
 	Get([]byte, *opt.ReadOptions) ([]byte, error)
 	Put([]byte, []byte, *opt.WriteOptions) error
 }
 
-func ArrayStringPush(db IGetPutLevelDb, key string, value []string) error {
-	keyValue, err := db.Get([]byte(key), nil)
+func ArrayStringPush(db IGetPutLevelDb, key string, values []string) error {
+	if len(values) == 0 {
+		return nil
+	}
+
+	keyByte := []byte(key)
+
+	keyValue, err := db.Get(keyByte, nil)
 	if err != nil && err != leveldb.ErrNotFound {
 		return err
 	}
 
-	var newKeyValue string
+	var newKeyValue []byte
 	if len(keyValue) == 0 {
-		newKeyValue = strings.Join(value, " ")
+		newKeyValue = []byte(strings.Join(values, " "))
 	} else {
-		newKeyValue = strings.Join(
-			append(
-				strings.Split(string(keyValue), " "),
-				value...
-			),
-			" ",
-		)
+		newKeyValue = keyValue
+		for t:=0; t<len(values); t++ {
+			newKeyValue = append(
+				append(newKeyValue, ' '),
+				[]byte(values[t])...
+			)
+		}
 	}
-
 
 	return db.Put(
 		[]byte(key),
-		[]byte(newKeyValue),
+		newKeyValue,
 		nil,
 	)
 }

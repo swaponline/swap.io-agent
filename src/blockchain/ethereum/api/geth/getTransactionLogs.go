@@ -20,7 +20,7 @@ func (e *Geth) GetTransactionLogs(
 			fmt.Sprintf(
 				`{
 					"jsonrpc":"2.0",
-					"method":"eth_getTransactionByHash",
+					"method":"eth_getTransactionReceipt",
 					"params":["%v"],
 					"id":1
 				}`,
@@ -32,10 +32,11 @@ func (e *Geth) GetTransactionLogs(
 		log.Println(err)
 		return nil, api.RequestError
 	}
+	defer res.Body.Close()
 
 	resBodyBytes, err := io.ReadAll(res.Body)
 	if err != nil {
-		log.Println(err)
+		log.Println(err, string(resBodyBytes))
 		return nil, api.ParseBodyError
 	}
 

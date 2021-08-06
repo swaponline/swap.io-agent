@@ -18,14 +18,16 @@ func AddSpendsFromLogsToJournal(
 			fromTransfer := strings.Replace(value.Topics[1], "000000000000000000000000", "", 1)
 			toTransfer   := strings.Replace(value.Topics[2], "000000000000000000000000", "", 1)
 
-			journal.Add(value.Address, blockchain.Spend{
-				Wallet: fromTransfer,
-				Value: `-`+value.Data,
-			})
-			journal.Add(value.Address, blockchain.Spend{
-				Wallet: toTransfer,
-				Value: value.Data,
-			})
+			if len(fromTransfer) > 0 && len(toTransfer) > 0 {
+				journal.Add(value.Address, blockchain.Spend{
+					Wallet: fromTransfer,
+					Value: `-`+value.Data,
+				})
+				journal.Add(value.Address, blockchain.Spend{
+					Wallet: toTransfer,
+					Value: value.Data,
+				})
+			}
 		}
 	}
 
