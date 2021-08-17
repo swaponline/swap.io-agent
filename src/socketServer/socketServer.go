@@ -2,25 +2,27 @@ package socketServer
 
 import (
 	"encoding/json"
-	socketio "github.com/googollee/go-socket.io"
-	"github.com/googollee/go-socket.io/engineio"
 	"log"
 	"net/http"
-	"swap.io-agent/src/auth"
-	"swap.io-agent/src/blockchain"
 	"sync"
 	"time"
+
+	socketio "github.com/googollee/go-socket.io"
+	"github.com/googollee/go-socket.io/engineio"
+	"swap.io-agent/src/auth"
+	"swap.io-agent/src/blockchain"
 )
 
 type Config struct {
 	synchronizer     blockchain.ISynchronizer
 	subscribeManager blockchain.ISubscribeManager
-	onNotifyUsers    chan blockchain.TransactionPipeData
+	onNotifyUsers    chan *blockchain.TransactionPipeData
 }
 
 type SocketServer struct {
 	io *socketio.Server
 }
+
 func InitializeServer(config Config) *SocketServer {
 	socketServer := SocketServer{
 		io: socketio.NewServer(&engineio.Options{
@@ -42,7 +44,7 @@ func InitializeServer(config Config) *SocketServer {
 		return nil
 	})
 	socketServer.io.OnEvent("/", "subscribe", func(s socketio.Conn, payload SubscribeEventPayload) string {
-		userId  := s.Context().(string)
+		userId := s.Context().(string)
 		endTime := int(time.Now().Unix())
 		err := config.subscribeManager.SubscribeUserToAddress(
 			userId,
@@ -70,7 +72,7 @@ func InitializeServer(config Config) *SocketServer {
 
 		if data, err := json.Marshal(SynchroniseAddressData{
 			Transactions: transactions,
-			Address: payload.Address,
+			Address:      payload.Address,
 		}); err == nil {
 			return string(data)
 		} else {

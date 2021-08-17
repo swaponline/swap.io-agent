@@ -8,8 +8,10 @@ import (
 	"strings"
 )
 
-func LinkedListPush(
-	db IGetPutLevelDb,
+
+func LinkedListKeyValuesPush(
+	db *leveldb.DB,
+	batch *leveldb.Batch,
 	head string,
 	data []string,
 ) error {
@@ -22,31 +24,16 @@ func LinkedListPush(
 		return err
 	}
 	if err == leveldb.ErrNotFound {
-		newTail := []byte(head+"|"+strconv.Itoa(len(data)-1))
-		err := db.Put(
+		newTail := []byte(head+`|0`)
+		batch.Put(
 			headKey,
 			newTail,
-			nil,
 		)
-		if err != nil {
-			return err
-		}
-		err = db.Put(
+		batch.Put(
 			newTail,
-			append([]byte(data[0]), []byte("(-1")...),
-			nil,
+			[]byte(strings.Join(data, " ")),
 		)
-		for t:=1; t<len(data); t++ {
-			err = db.Put(
-				newTail,
-				append(
-					[]byte(data[0]),
-					[]byte("(" + strconv.Itoa(t))...
-				),
-				nil,
-			)
-		}
-		return err
+		return nil
 	}
 
 	keyData := strings.Split(string(tailKey), "|")
@@ -71,25 +58,90 @@ func LinkedListPush(
 	}
 
 	newTail := []byte(
-		head+"|"+strconv.Itoa(index+len(data)-1),
+		head+"|"+strconv.Itoa(index+1),
 	)
-	err = db.Put(
+	batch.Put(
 		headKey,
 		newTail,
-		nil,
 	)
 	if err != nil {
 		return err
 	}
-	for t:=index; t<index+len(data); t++ {
-		err = db.Put(
-			[]byte(head+"|"+strconv.Itoa(t)),
-			append(
-				[]byte(data[0]),
-				[]byte("(" + strconv.Itoa(t))...
-			),
-			nil,
+	batch.Put(
+		newTail,
+		[]byte(strings.Join(data, " ")),
+	)
+
+	return err
+}
+
+
+func LinkedListKeyValuePush(
+	db *leveldb.DB,
+	batch *leveldb.Batch,
+	head string,
+	data []string,
+) error {
+	if len(data) == 0 {
+		return nil
+	}
+	headKey := []byte(head)
+	tailKey, err := db.Get(headKey, nil)
+	if err != nil && err != leveldb.ErrNotFound {
+		return err
+	}
+	if err == leveldb.ErrNotFound {
+		newTail := []byte(head+"|"+strconv.Itoa(len(data)))
+		batch.Put(
+			headKey,
+			newTail,
 		)
+		for t:=0; t<len(data); t++ {
+			batch.Put(
+				[]byte(head+"|"+strconv.Itoa(t)),
+				[]byte(data[t]),
+			)
+		}
+		return nil
+	}
+
+	keyData := strings.Split(string(tailKey), "|")
+	if len(keyData) != 2 {
+		return errors.New(
+			fmt.Sprintf(
+				"invalid tailKey - %v | %v",
+				string(tailKey),
+				head,
+			),
+		)
+	}
+
+	index, err := strconv.Atoi(keyData[1])
+	if err != nil {
+		return errors.New(
+			fmt.Sprintf(
+				"invlid tailKey index - %v",
+				keyData[1],
+			),
+		)
+	}
+
+	newTail := []byte(
+		head+"|"+strconv.Itoa(index+len(data)),
+	)
+	batch.Put(
+		headKey,
+		newTail,
+	)
+	if err != nil {
+		return err
+	}
+	for t:=0; t<len(data); t++ {
+		batch.Put(
+			[]byte(head+"|"+strconv.Itoa(index)),
+			[]byte(data[t]),
+		)
+		index+=1
 	}
 
 	return err

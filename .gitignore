@@ -3,5 +3,7 @@
 .env.development
 .env.production
 
+deploy.sh
+
 /blockchainIndexes
 swap.io-agent

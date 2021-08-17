@@ -11,7 +11,7 @@ type BlockchainIndexer struct {
 	formatter         blockchain.IFormatter
 	transactionsStore levelDbStore.ITransactionsStore
 	isSynchronize     chan struct{}
-	NewTransactions   chan blockchain.Transaction
+	NewTransactions   chan *blockchain.Transaction
 }
 
 type BlockchainIndexerConfig struct {
@@ -26,7 +26,7 @@ func InitializeIndexer(config BlockchainIndexerConfig) *BlockchainIndexer {
 		formatter: config.Formatter,
 		transactionsStore: config.TransactionsStore,
 		isSynchronize: make(chan struct{}),
-		NewTransactions: make(chan blockchain.Transaction),
+		NewTransactions: make(chan *blockchain.Transaction),
 	}
 
 	go bi.RunScanner()

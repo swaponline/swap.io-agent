@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	_ "net/http/pprof"
 	"strconv"
 	"strings"
 	"swap.io-agent/src/blockchain/ethereum/api"
@@ -51,8 +52,8 @@ func (e *Geth) GetBlockByIndex(index int) (*api.Block,int) {
 		}
 		// if error parsed width empty filed then block not exit
 		if resError.Result  == "" &&
-			resError.Status  == "" &&
-			resError.Message == "" {
+		   resError.Status  == "" &&
+		   resError.Message == "" {
 			return nil, api.NotExistBlockError
 		}
 		return nil, api.RequestError

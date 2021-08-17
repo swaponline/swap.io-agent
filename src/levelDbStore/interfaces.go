@@ -7,9 +7,8 @@ type ITransactionsStore interface {
 		startTime int,
 		endTime int,
 	) ([]string, error)
-	WriteLastIndexedBlockTransactions(
-		indexedTransactions *map[string][]string,
+	WriteLastIndexedTransactions(
+		AddressHashTransactions map[string][]string,
 		indexBlock int,
-		timestampBlock int,
 	) error
 }

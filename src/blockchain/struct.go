@@ -34,5 +34,5 @@ type Spend struct {
 }
 type TransactionPipeData struct {
 	Subscribers []string
-	Transaction Transaction
+	Transaction *Transaction
 }

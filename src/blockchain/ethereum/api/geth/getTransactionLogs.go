@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	_ "net/http/pprof"
 	"strings"
 	"swap.io-agent/src/blockchain/ethereum/api"
 )
@@ -13,6 +14,14 @@ import (
 func (e *Geth) GetTransactionLogs(
 	hash string,
 ) (*api.TransactionLogs, int) {
+/*
+curl --location --request POST 'localhost:8545/' --header 'Content-Type: application/json' --data-raw '{
+"method": "eth_getTransactionReceipt",
+"params": ["0x383d86755b0288a9a4cece3f0f6c6d721924b1f75fcf402b7f5e39c0d8ac10f5"],
+"jsonrpc": "2.0",
+"id": "2"
+}'
+*/
 	res, err := http.Post(
 		e.baseUrl,
 		"application/json",

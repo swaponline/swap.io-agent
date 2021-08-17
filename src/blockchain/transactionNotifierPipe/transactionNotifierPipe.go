@@ -6,14 +6,14 @@ import (
 )
 
 type TransactionNotifierPipe struct {
-	input            chan blockchain.Transaction
-	Out              chan blockchain.TransactionPipeData
+	input            chan *blockchain.Transaction
+	Out              chan *blockchain.TransactionPipeData
 	subscribersStore redisStore.ISubscribersStore
 	stop             chan bool
 }
 
 type TransactionNotifierPipeConfig struct {
-	Input            chan blockchain.Transaction
+	Input            chan *blockchain.Transaction
 	SubscribersStore redisStore.ISubscribersStore
 }
 
@@ -22,7 +22,7 @@ func InitializeTransactionNotifierPipe(
 ) *TransactionNotifierPipe {
 	return &TransactionNotifierPipe{
 		input: config.Input,
-		Out: make(chan blockchain.TransactionPipeData),
+		Out: make(chan *blockchain.TransactionPipeData),
 		subscribersStore: config.SubscribersStore,
 	}
 }
@@ -35,7 +35,7 @@ func (tnp *TransactionNotifierPipe) Start() {
 					transaction.AllSpendAddresses,
 				)
 				if len(subscribers) > 0 {
-					tnp.Out <- blockchain.TransactionPipeData{
+					tnp.Out <- &blockchain.TransactionPipeData{
 						Subscribers: subscribers,
 						Transaction: transaction,
 					}

@@ -40,20 +40,40 @@ type BlockTransaction struct {
 	S                 string `json:"s"`
 	AllSpendAddresses []string
 }
+type InteranlTransaction struct {
+	Type    string `json:"type"`
+	From    string `json:"from"`
+	To      string `json:"to"`
+	Value   string `json:"Value"`
+	Gas     string `json:"gas"`
+	GasUsed string `json:"gasUsed"`
+	Input   string `json:"input"`
+	Output  string `json:"output"`
+	Time    string `json:"time"`
+	Calls   []InteranlTransactionCall
+}
+type InteranlTransactionCall struct {
+	Type   string `json:"type"`
+	From   string `json:"from"`
+	To     string `json:"to"`
+	Value  string `json:"value"`
+	Input  string `json:"input"`
+	Output string `json:"output"`
+}
 type TransactionLogs struct {
-	BlockHash         string      `json:"blockHash"`
-	BlockNumber       string      `json:"blockNumber"`
-	ContractAddress   string      `json:"contractAddress"`
-	CumulativeGasUsed string      `json:"cumulativeGasUsed"`
-	From              string      `json:"from"`
-	GasUsed           string      `json:"gasUsed"`
+	BlockHash         string           `json:"blockHash"`
+	BlockNumber       string           `json:"blockNumber"`
+	ContractAddress   string           `json:"contractAddress"`
+	CumulativeGasUsed string           `json:"cumulativeGasUsed"`
+	From              string           `json:"from"`
+	GasUsed           string           `json:"gasUsed"`
 	Logs              []TransactionLog `json:"logs"`
-	LogsBloom         string `json:"logsBloom"`
-	Status            string `json:"status"`
-	To                string `json:"to"`
-	TransactionHash   string `json:"transactionHash"`
-	TransactionIndex  string `json:"transactionIndex"`
-	Type              string `json:"type"`
+	LogsBloom         string           `json:"logsBloom"`
+	Status            string           `json:"status"`
+	To                string           `json:"to"`
+	TransactionHash   string           `json:"transactionHash"`
+	TransactionIndex  string           `json:"transactionIndex"`
+	Type              string           `json:"type"`
 }
 type TransactionLog struct {
 	Address          string   `json:"address"`

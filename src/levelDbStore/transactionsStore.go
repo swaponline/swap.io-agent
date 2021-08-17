@@ -4,16 +4,24 @@ import (
 	"errors"
 	"fmt"
 	"github.com/syndtr/goleveldb/leveldb"
+	"log"
 	"strconv"
 	"strings"
 )
 
-type TransactionsStore struct {
-	db *leveldb.DB
+type writeBuffer struct {
+	buf       map[string][]string
+	size      int
 	lastBlock int
 }
+
+type TransactionsStore struct {
+	db          *leveldb.DB
+	lastBlock   int
+	writeBuffer writeBuffer
+}
 type TransactionsStoreConfig struct {
-	Name string
+	Name                 string
 	DefaultScannedBlocks int
 }
 
@@ -54,6 +62,11 @@ func InitialiseTransactionStore(config TransactionsStoreConfig) (*TransactionsSt
 	return &TransactionsStore{
 		db: db,
 		lastBlock: lastBlock,
+		writeBuffer: writeBuffer{
+			buf: map[string][]string{},
+			size: 0,
+			lastBlock: -1,
+		},
 	}, nil
 }
 
@@ -95,54 +108,134 @@ func (ts *TransactionsStore) GetAddressTransactionsHash(
 
 	return transactionsHash, nil
 }
-func (ts *TransactionsStore) WriteLastIndexedBlockTransactions(
-	indexedTransactions *map[string][]string,
+
+func (ts *TransactionsStore) WriteLastIndexedTransactions(
+	AddressHashTransactions map[string][]string,
 	indexBlock int,
-	timestampBlock int,
 ) error {
-	bdTransaction, err := ts.db.OpenTransaction()
-	if err != nil {
-		return err
-	}
-	for address, transactions := range *indexedTransactions {
-		//format transactions
-		formattedTransactions := make([]string, len(transactions))
-		for index, hashTransaction := range transactions {
-			formattedTransactions[index] = fmt.Sprintf(
-				`%v|%v`, hashTransaction, timestampBlock,
+	indexBlockStr := strconv.Itoa(indexBlock)
+	for address, hashes := range AddressHashTransactions {
+		hashIndexTransactions := make([]string, 0)
+		for _, hash := range hashes {
+			hashIndexTransactions = append(
+				hashIndexTransactions,
+				hash+"|"+indexBlockStr,
 			)
 		}
-		// push back address transaction|timestampBlock
-		err = LinkedListPush(
-			bdTransaction, address, formattedTransactions,
+
+		ts.writeBuffer.buf[address] = append(
+			ts.writeBuffer.buf[address],
+			hashIndexTransactions...
 		)
-		if err != nil {
-			bdTransaction.Discard()
-			return err
-		}
-	}
-	// update lastBlock
-	err = bdTransaction.Put(
-		lastBlockKey,
-		[]byte(strconv.Itoa(indexBlock)),
-		nil,
-	)
-	if err != nil {
-		bdTransaction.Discard()
-		return err
+		ts.writeBuffer.size+=len(hashes)
 	}
 
-	// commit transaction
-	err = bdTransaction.Commit()
-	if err != nil {
-		bdTransaction.Discard()
-		return err
+	ts.lastBlock             = indexBlock
+	ts.writeBuffer.lastBlock = indexBlock
+	if ts.writeBuffer.size > 1024 {
+		return ts.Flush()
 	}
-
-	ts.lastBlock = indexBlock
 
 	return nil
 }
+func (ts *TransactionsStore) Flush() error {
+	if ts.writeBuffer.size > 0 ||
+	   ts.writeBuffer.lastBlock != -1 {
+		dbTransaction, err := ts.db.OpenTransaction()
+		if err != nil {
+			return err
+		}
+
+		batch := new(leveldb.Batch)
+		for address, hashIndexTransactions := range ts.writeBuffer.buf {
+			err := LinkedListKeyValuesPush(
+				ts.db,
+				batch,
+				address,
+				hashIndexTransactions,
+			)
+			if err != nil {
+				dbTransaction.Discard()
+				return err
+			}
+		}
+
+		err = dbTransaction.Write(batch, nil)
+		if err != nil {
+			dbTransaction.Discard()
+			return err
+		}
+
+		err = dbTransaction.Put(
+			lastBlockKey,
+			[]byte(strconv.Itoa(ts.writeBuffer.lastBlock)),
+			nil,
+		)
+		if err != nil {
+			dbTransaction.Discard()
+			return err
+		}
+
+		err = dbTransaction.Commit()
+		if err != nil {
+			dbTransaction.Discard()
+			return err
+		}
+		log.Println("written transactions -", ts.writeBuffer.size)
+		log.Println("updated lastBlock -", ts.writeBuffer.lastBlock)
+
+		ts.writeBuffer.buf       = make(map[string][]string)
+		ts.writeBuffer.size      = 0
+		ts.writeBuffer.lastBlock = -1
+	}
+
+	return nil
+}
+//func (ts *TransactionsStore) WriteLastIndexedBlockTransactions(
+//	indexedTransactions *map[string][]string,
+//	indexBlock int,
+//	timestampBlock int,
+//) error {
+//	bdTransaction, err := ts.db.OpenTransaction()
+//	if err != nil {
+//		return err
+//	}
+//	batch := new(leveldb.Batch)
+//	for address, transactions := range *indexedTransactions {
+//		//format transactions
+//		formattedTransactions := make([]string, len(transactions))
+//		for index, hashTransaction := range transactions {
+//			formattedTransactions[index] =  fmt.Sprintf(
+//				`%v|%v`, hashTransaction, timestampBlock,
+//			)
+//		}
+//		// push back address transaction|timestampBlock
+//		err = LinkedListKeyValuesPush(
+//			ts.db, batch, address, formattedTransactions,
+//		)
+//		if err != nil {
+//			bdTransaction.Discard()
+//			return err
+//		}
+//	}
+//
+//	batch.Put(lastBlockKey, []byte(strconv.Itoa(indexBlock)))
+//
+//	err = bdTransaction.Write(batch,nil)
+//	if err != nil {
+//		bdTransaction.Discard()
+//		return err
+//	}
+//	err = bdTransaction.Commit()
+//	if err != nil {
+//		bdTransaction.Discard()
+//		return err
+//	}
+//
+//	ts.lastBlock = indexBlock
+//
+//	return nil
+//}
 
 func (ts *TransactionsStore) Start() {}
 func (ts *TransactionsStore) Stop() error {

@@ -20,9 +20,6 @@ func New(network string) *Journal {
 	}
 }
 func (j *Journal) Add(id string, spend blockchain.Spend) {
-	if len(spend.Wallet) == 0 {
-		return
-	}
 	j.spendsAddress.Add(spend.Wallet)
 
 	if _, exist := j.buf[id]; exist {

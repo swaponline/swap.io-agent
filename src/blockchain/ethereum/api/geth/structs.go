@@ -12,17 +12,22 @@ type GetTransactionLogsResponse struct {
 	Id      int    `json:"id"`
 	Result  api.TransactionLogs
 }
-type getCurrentBlockIndexResponse struct {
-	Id int `json:"id"`
+type GetInternalTransactionsResponse struct {
+	Jsonrpc string `json:"jsonrpc"`
+	Id      string `json:"id"`
+	Result  api.InteranlTransaction
+}
+type GetCurrentBlockIndexResponse struct {
+	Id     int    `json:"id"`
 	Result string `json:"result"`
 }
 type getBlockResponse struct {
-	Jsonrpc string `json:"jsonrpc"`
-	Id      int    `json:"id"`
+	Jsonrpc string    `json:"jsonrpc"`
+	Id      int       `json:"id"`
 	Result  api.Block `json:"result"`
 }
 type getTransactionByHashResponse struct {
-	Jsonrpc string `json:"jsonrpc"`
-	Id      int    `json:"id"`
+	Jsonrpc string               `json:"jsonrpc"`
+	Id      int                  `json:"id"`
 	Result  api.BlockTransaction `json:"result"`
 }

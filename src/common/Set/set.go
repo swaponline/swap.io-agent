@@ -34,7 +34,7 @@ func (s *Set) Clear() *Set {
 	return s
 }
 func (s *Set) Keys() []string {
-	result := make([]string, len(s.buf))
+	result := make([]string, 0)
 	for key, _ := range s.buf {
 		result = append(result, key)
 	}
