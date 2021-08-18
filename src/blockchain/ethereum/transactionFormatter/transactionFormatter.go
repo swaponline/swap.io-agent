@@ -65,7 +65,7 @@ func (tf *TransactionFormatter) FormatTransaction(
 			"not get transactionLogs error - %v", errReq,
 		)
 	}
-	interanlTransaction, errReq := tf.api.GetInternalTransaction(
+	internalTransaction, errReq := tf.api.GetInternalTransaction(
 		blockTransaction.Hash,
 	)
 	if errReq != api.RequestSuccess {
@@ -128,7 +128,7 @@ func (tf *TransactionFormatter) FormatTransaction(
 	}
 
 	AddSpendsFromInternalTxCallsToJournal(
-		interanlTransaction.Calls,
+		internalTransaction.Calls,
 		transactionJournal,
 	)
 	AddSpendsFromLogsToJournal(

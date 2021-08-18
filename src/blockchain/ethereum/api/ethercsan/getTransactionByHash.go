@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
 	"swap.io-agent/src/blockchain/ethereum/api"
 )
 
@@ -24,7 +25,7 @@ func (e *Etherscan) GetTransactionByHash(
 	}
 
 	resBody, err := io.ReadAll(res.Body)
-	if err != nil {
+	if err != nil && err != io.EOF {
 		return nil, api.ParseBodyError
 	}
 

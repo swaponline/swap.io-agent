@@ -27,12 +27,18 @@ func InitialiseSynchronizer(config SynchronizerConfig) *Synchronizer {
 	}
 }
 
+func (*Synchronizer) GetAddressCursor() (string, string, error) {
+	return "", "", nil
+}
+func (*Synchronizer) GetCursorData() ([]blockchain.Transaction,error) {
+	return nil, nil
+}
 func (s *Synchronizer) SynchronizeAddress(
 	userId string,
 	address string,
 	startTime int,
 	endTime int,
-)([]*blockchain.Transaction, error) {
+) ([]*blockchain.Transaction, error) {
 	transactionsHash, err := s.store.GetAddressTransactionsHash(
 		address,
 		startTime,

@@ -43,7 +43,7 @@ func (e *Geth) GetInternalTransaction(hash string) (*api.InteranlTransaction, in
 	defer res.Body.Close()
 
 	resBodyBytes, err := io.ReadAll(res.Body)
-	if err != nil {
+	if err != nil && err != io.EOF {
 		log.Println(err)
 		return nil, api.ParseBodyError
 	}

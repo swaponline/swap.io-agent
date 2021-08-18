@@ -9,11 +9,11 @@ import (
 	_ "net/http/pprof"
 	"strconv"
 	"strings"
+
 	"swap.io-agent/src/blockchain/ethereum/api"
 )
 
-
-func (e *Geth) GetBlockByIndex(index int) (*api.Block,int) {
+func (e *Geth) GetBlockByIndex(index int) (*api.Block, int) {
 	log.Println("get block", index, "0x"+strconv.FormatInt(int64(index), 16))
 	res, err := http.Post(
 		e.baseUrl,
@@ -37,7 +37,7 @@ func (e *Geth) GetBlockByIndex(index int) (*api.Block,int) {
 	defer res.Body.Close()
 
 	resBodyBytes, err := io.ReadAll(res.Body)
-	if err != nil {
+	if err != nil && err != io.EOF {
 		log.Println(err)
 		return nil, api.ParseBodyError
 	}
@@ -51,9 +51,9 @@ func (e *Geth) GetBlockByIndex(index int) (*api.Block,int) {
 			return nil, api.RequestLimitError
 		}
 		// if error parsed width empty filed then block not exit
-		if resError.Result  == "" &&
-		   resError.Status  == "" &&
-		   resError.Message == "" {
+		if resError.Result == "" &&
+			resError.Status == "" &&
+			resError.Message == "" {
 			return nil, api.NotExistBlockError
 		}
 		return nil, api.RequestError

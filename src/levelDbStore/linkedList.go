@@ -8,7 +8,43 @@ import (
 	"strings"
 )
 
-
+func LinkedListKeyValuesGetCursorData(
+	db *leveldb.DB, cursor string,
+) ([]string, error) {
+	if cursor == "null" {
+		return []string{}, nil
+	}
+	data, err := db.Get([]byte(cursor), nil)
+	return strings.Split(string(data), " "), err
+}
+func LinkedListKeyValuesGetFirstCursor(
+	db *leveldb.DB,
+	head string,
+) (string,string,error) {
+	firstCursorDataBytes, err := db.Get([]byte(head), nil)
+	if err == leveldb.ErrNotFound {
+		return "null","null",nil
+	}
+	if err != nil {
+		return "","",err
+	}
+	firstCursorData := strings.Split(
+		string(firstCursorDataBytes), "|",
+	)
+	if len(firstCursorData) != 2 {
+		return "","",fmt.Errorf("incorrect first cursor data - %v", firstCursorData)
+	}
+	index, err := strconv.Atoi(firstCursorData[1])
+	if err != nil {
+		return "","",fmt.Errorf(
+			"incorrect first cursor index - %v | %v", index, err,
+		)
+	}
+	if index == 0 {
+		return string(firstCursorDataBytes),"null",nil
+	}
+	return string(firstCursorDataBytes), firstCursorData[0]+"|"+strconv.Itoa(index-1), nil
+}
 func LinkedListKeyValuesPush(
 	db *leveldb.DB,
 	batch *leveldb.Batch,
@@ -74,8 +110,6 @@ func LinkedListKeyValuesPush(
 
 	return err
 }
-
-
 func LinkedListKeyValuePush(
 	db *leveldb.DB,
 	batch *leveldb.Batch,

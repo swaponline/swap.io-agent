@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+
 	"swap.io-agent/src/blockchain/ethereum/api"
 )
 
@@ -26,7 +27,7 @@ func (e *Etherscan) GetTransactionLogs(
 	}
 
 	resBodyBytes, err := io.ReadAll(res.Body)
-	if err != nil {
+	if err != nil && err != io.EOF {
 		log.Println(err)
 		return nil, api.ParseBodyError
 	}

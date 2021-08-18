@@ -73,6 +73,35 @@ func InitialiseTransactionStore(config TransactionsStoreConfig) (*TransactionsSt
 func (ts *TransactionsStore) GetLastTransactionBlock() int {
 	return ts.lastBlock
 }
+
+func (ts *TransactionsStore) GetCursorTransactionHashes(
+	cursor string,
+) ([]string, error) {
+	hashes := make([]string, 0)
+	cursorData, err := LinkedListKeyValuesGetCursorData(
+		ts.db, cursor,
+	)
+	if err != nil {
+		return hashes, err
+	}
+	for _, addressHash := range cursorData {
+		addressHashData := strings.Split(addressHash, " ")
+		if len(addressHashData) != 2 {
+			return hashes, fmt.Errorf("invalid cursor data %v", addressHash)
+		}
+		hashes = append(hashes, hashes[1])
+	}
+
+	return hashes,nil
+}
+func (ts *TransactionsStore) GetFirstCursorTransactionHashes(
+	address string,
+) (string,string,error) {
+	return LinkedListKeyValuesGetFirstCursor(
+		ts.db, address,
+	)
+}
+
 func (ts *TransactionsStore) GetAddressTransactionsHash(
 	address string,
 	startTime int,
@@ -191,51 +220,6 @@ func (ts *TransactionsStore) Flush() error {
 
 	return nil
 }
-//func (ts *TransactionsStore) WriteLastIndexedBlockTransactions(
-//	indexedTransactions *map[string][]string,
-//	indexBlock int,
-//	timestampBlock int,
-//) error {
-//	bdTransaction, err := ts.db.OpenTransaction()
-//	if err != nil {
-//		return err
-//	}
-//	batch := new(leveldb.Batch)
-//	for address, transactions := range *indexedTransactions {
-//		//format transactions
-//		formattedTransactions := make([]string, len(transactions))
-//		for index, hashTransaction := range transactions {
-//			formattedTransactions[index] =  fmt.Sprintf(
-//				`%v|%v`, hashTransaction, timestampBlock,
-//			)
-//		}
-//		// push back address transaction|timestampBlock
-//		err = LinkedListKeyValuesPush(
-//			ts.db, batch, address, formattedTransactions,
-//		)
-//		if err != nil {
-//			bdTransaction.Discard()
-//			return err
-//		}
-//	}
-//
-//	batch.Put(lastBlockKey, []byte(strconv.Itoa(indexBlock)))
-//
-//	err = bdTransaction.Write(batch,nil)
-//	if err != nil {
-//		bdTransaction.Discard()
-//		return err
-//	}
-//	err = bdTransaction.Commit()
-//	if err != nil {
-//		bdTransaction.Discard()
-//		return err
-//	}
-//
-//	ts.lastBlock = indexBlock
-//
-//	return nil
-//}
 
 func (ts *TransactionsStore) Start() {}
 func (ts *TransactionsStore) Stop() error {

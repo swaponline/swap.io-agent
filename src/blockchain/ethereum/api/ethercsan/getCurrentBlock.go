@@ -6,10 +6,11 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+
 	"swap.io-agent/src/blockchain/ethereum/api"
 )
 
-func (e *Etherscan) GetCurrentIndexBlock() (int,int) {
+func (e *Etherscan) GetCurrentIndexBlock() (int, int) {
 	res, err := http.Get(
 		fmt.Sprintf(
 			"%v/api?module=proxy&action=eth_blockNumber&apikey=%v",
@@ -17,7 +18,8 @@ func (e *Etherscan) GetCurrentIndexBlock() (int,int) {
 			e.apiKey,
 		),
 	)
-	if err != nil {return 0, api.RequestError
+	if err != nil {
+		return 0, api.RequestError
 	}
 
 	var currentBlockInfo getCurrentBlockIndexResponse
@@ -30,7 +32,8 @@ func (e *Etherscan) GetCurrentIndexBlock() (int,int) {
 		16,
 		64,
 	)
-	if err != nil {return 0, api.ParseIndexError
+	if err != nil {
+		return 0, api.ParseIndexError
 	}
 
 	return int(currentBlockId), api.RequestSuccess
