@@ -15,4 +15,7 @@ type IGeth interface {
 	GetInternalTransaction(
 		hash string,
 	) (*api.InteranlTransaction, int)
+	GetBlockTraceByIndex(
+		index string,
+	) (interface{}, int)
 }

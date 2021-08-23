@@ -1,50 +1,95 @@
 package levelDbStore
 
 import (
-	"errors"
 	"fmt"
 	"github.com/syndtr/goleveldb/leveldb"
 	"strconv"
 	"strings"
 )
 
-func LinkedListKeyValuesGetCursorData(
-	db *leveldb.DB, cursor string,
-) ([]string, error) {
-	if cursor == "null" {
-		return []string{}, nil
-	}
-	data, err := db.Get([]byte(cursor), nil)
-	return strings.Split(string(data), " "), err
+func dataToKey(head string, index int) string {
+	return head+"|"+strconv.Itoa(index)
 }
-func LinkedListKeyValuesGetFirstCursor(
-	db *leveldb.DB,
-	head string,
-) (string,string,error) {
-	firstCursorDataBytes, err := db.Get([]byte(head), nil)
-	if err == leveldb.ErrNotFound {
-		return "null","null",nil
-	}
-	if err != nil {
-		return "","",err
-	}
-	firstCursorData := strings.Split(
-		string(firstCursorDataBytes), "|",
-	)
-	if len(firstCursorData) != 2 {
-		return "","",fmt.Errorf("incorrect first cursor data - %v", firstCursorData)
-	}
-	index, err := strconv.Atoi(firstCursorData[1])
-	if err != nil {
-		return "","",fmt.Errorf(
-			"incorrect first cursor index - %v | %v", index, err,
+func keyToData(key string) (string, int, error) {
+	parsedKey := strings.Split(key, "|")
+	if len(parsedKey) != 2 {
+		return "null", -1, fmt.Errorf(
+			"key - %v",
+			key,
 		)
 	}
-	if index == 0 {
-		return string(firstCursorDataBytes),"null",nil
+	index, err := strconv.Atoi(parsedKey[1])
+	if err != nil {
+		return "null", -1, fmt.Errorf(
+			"incorrect key index - %v", parsedKey[1],
+		)
 	}
-	return string(firstCursorDataBytes), firstCursorData[0]+"|"+strconv.Itoa(index-1), nil
+	return parsedKey[0], index, nil
 }
+
+func LinkedListKeyValuesGetCursorData(
+	db *leveldb.DB,
+	cursor string,
+) ([]string, string, error) {
+	if cursor == "null" {
+		return []string{}, "null", nil
+	}
+	_, _, err := keyToData(cursor)
+	if err != nil {
+		return []string{}, "null", err
+	}
+
+	data, err := db.Get([]byte(cursor), nil)
+	if err != nil {
+		return []string{}, "null", err
+	}
+	nextCursor, err := LinkedListKeyValuesGetNextCursor(cursor)
+	if err != nil {
+		return []string{}, "null", err
+	}
+
+	return strings.Split(string(data), " "), nextCursor, nil
+}
+func LinkedListKeyValuesGetFirstCursor(
+	db *leveldb.DB, head string,
+) (string, string, error) {
+	if head == "null" {
+		return "null", "null", nil
+	}
+
+	cursor, err := db.Get([]byte(head), nil)
+	if err == leveldb.ErrNotFound {
+		return "null", "null", nil
+	}
+	if err != nil {
+		return "null", "null", err
+	}
+
+	nextCursor, err := LinkedListKeyValuesGetNextCursor(string(cursor))
+	if err != nil {
+		return "null", "null", err
+	}
+
+	return string(cursor), nextCursor, nil
+}
+
+func LinkedListKeyValuesGetNextCursor(
+	cursor string,
+) (string, error) {
+	if cursor == "null" {
+		return "null", nil
+	}
+
+	head, index, err := keyToData(cursor)
+	if err != nil {
+		return "null", err
+	}
+	if index <= 0 {
+		return "null", nil
+	}
+	return dataToKey(head, index-1), nil
+}
+
 func LinkedListKeyValuesPush(
 	db *leveldb.DB,
 	batch *leveldb.Batch,
@@ -72,25 +117,9 @@ func LinkedListKeyValuesPush(
 		return nil
 	}
 
-	keyData := strings.Split(string(tailKey), "|")
-	if len(keyData) != 2 {
-		return errors.New(
-			fmt.Sprintf(
-				"invalid tailKey - %v | %v",
-				string(tailKey),
-				head,
-			),
-		)
-	}
-
-	index, err := strconv.Atoi(keyData[1])
+	_, index, err := keyToData(string(tailKey))
 	if err != nil {
-		return errors.New(
-			fmt.Sprintf(
-				"invlid tailKey index - %v",
-				keyData[1],
-			),
-		)
+		return err
 	}
 
 	newTail := []byte(
@@ -139,25 +168,9 @@ func LinkedListKeyValuePush(
 		return nil
 	}
 
-	keyData := strings.Split(string(tailKey), "|")
-	if len(keyData) != 2 {
-		return errors.New(
-			fmt.Sprintf(
-				"invalid tailKey - %v | %v",
-				string(tailKey),
-				head,
-			),
-		)
-	}
-
-	index, err := strconv.Atoi(keyData[1])
+	_, index, err := keyToData(string(tailKey))
 	if err != nil {
-		return errors.New(
-			fmt.Sprintf(
-				"invlid tailKey index - %v",
-				keyData[1],
-			),
-		)
+		return err
 	}
 
 	newTail := []byte(

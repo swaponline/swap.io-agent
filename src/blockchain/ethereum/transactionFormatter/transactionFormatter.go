@@ -65,14 +65,14 @@ func (tf *TransactionFormatter) FormatTransaction(
 			"not get transactionLogs error - %v", errReq,
 		)
 	}
-	internalTransaction, errReq := tf.api.GetInternalTransaction(
-		blockTransaction.Hash,
-	)
-	if errReq != api.RequestSuccess {
-		return nil, fmt.Errorf(
-			"not get interanlTransaction error - %v", errReq,
-		)
-	}
+	//internalTransaction, errReq := tf.api.GetInternalTransaction(
+	//	blockTransaction.Hash,
+	//)
+	//if errReq != api.RequestSuccess {
+	//	return nil, fmt.Errorf(
+	//		"not get interanlTransaction error - %v", errReq,
+	//	)
+	//}
 
 	transactionGasUsed, ok := new(big.Int).SetString(
 		transactionLogs.GasUsed, 0,
@@ -127,10 +127,10 @@ func (tf *TransactionFormatter) FormatTransaction(
 		})
 	}
 
-	AddSpendsFromInternalTxCallsToJournal(
-		internalTransaction.Calls,
-		transactionJournal,
-	)
+	//AddSpendsFromInternalTxCallsToJournal(
+	//	internalTransaction.Calls,
+	//	transactionJournal,
+	//)
 	AddSpendsFromLogsToJournal(
 		transactionLogs.Logs,
 		transactionJournal,

@@ -25,11 +25,20 @@ func (indexer *BlockchainIndexer) RunScanner() {
 		}
 		log.Println(currentBlock, "|", block.Number, "- ok")
 
-		transactions        := indexer.formatBlockTransactions(block)
+		blockTrace := make(chan struct{})
+		go func() {
+			_, err := indexer.api.GetBlockTraceByIndex(block.Number)
+			if err != api.RequestSuccess {
+				log.Panicln("ERROR", block.Number)
+			}
+			close(blockTrace)
+		}()
+		//transactions        := indexer.formatBlockTransactions(block)
+		<-blockTrace
 
 		indexedTransactions := make(map[string][]string)
-		indexingTransactions(indexedTransactions, transactions)
-		allIndexedTransactions+=len(transactions)
+		//indexingTransactions(indexedTransactions, transactions)
+		allIndexedTransactions+=len(block.Transactions)
 		log.Println("indexed transactions -", len(block.Transactions))
 		log.Println("all indexed transactions -", allIndexedTransactions)
 
@@ -62,7 +71,7 @@ func (indexer *BlockchainIndexer) RunScanner() {
 		indexedTransactions := make(map[string][]string)
 		indexingTransactions(indexedTransactions, transactions)
 		allIndexedTransactions+=len(transactions)
-		log.Println("indexed transactions -", len(block.Transactions))
+		log.Println("indexed transactions -", len(transactions))
 		log.Println("all indexed transactions -", allIndexedTransactions)
 
 		indexer.writeIndexedTransactionToStore(

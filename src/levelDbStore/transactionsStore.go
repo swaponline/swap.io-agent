@@ -74,32 +74,50 @@ func (ts *TransactionsStore) GetLastTransactionBlock() int {
 	return ts.lastBlock
 }
 
+func (ts *TransactionsStore) GetCursorFromAddress(address string) (string, error) {
+	cursor, err := ts.db.Get([]byte(address), nil)
+	if err == leveldb.ErrNotFound {
+		return "null", nil
+	}
+	if err != nil {
+		return "null", err
+	}
+	return string(cursor), nil
+}
 func (ts *TransactionsStore) GetCursorTransactionHashes(
 	cursor string,
-) ([]string, error) {
+) (*CursorTransactionHashes, error) {
 	hashes := make([]string, 0)
-	cursorData, err := LinkedListKeyValuesGetCursorData(
+	cursorData, nextCursor, err := LinkedListKeyValuesGetCursorData(
 		ts.db, cursor,
 	)
 	if err != nil {
-		return hashes, err
+		return nil, err
 	}
-	for _, addressHash := range cursorData {
-		addressHashData := strings.Split(addressHash, " ")
-		if len(addressHashData) != 2 {
-			return hashes, fmt.Errorf("invalid cursor data %v", addressHash)
+	for _, storeData := range cursorData {
+		hashTx, _, err := storeDataToTxHashAndBlockIndex(storeData)
+		if err != nil {
+			return nil, err
 		}
-		hashes = append(hashes, hashes[1])
+		hashes = append(hashes, hashTx)
 	}
 
-	return hashes,nil
+	return &CursorTransactionHashes{
+		Cursor: cursor,
+		NextCursor: nextCursor,
+		Hashes: hashes,
+	}, nil
 }
 func (ts *TransactionsStore) GetFirstCursorTransactionHashes(
 	address string,
-) (string,string,error) {
-	return LinkedListKeyValuesGetFirstCursor(
+) (*CursorTransactionHashes,error) {
+	cursor, _, err := LinkedListKeyValuesGetFirstCursor(
 		ts.db, address,
 	)
+	if err != nil {
+		return nil, err
+	}
+	return ts.GetCursorTransactionHashes(cursor)
 }
 
 func (ts *TransactionsStore) GetAddressTransactionsHash(
@@ -138,17 +156,45 @@ func (ts *TransactionsStore) GetAddressTransactionsHash(
 	return transactionsHash, nil
 }
 
+func txHashAndBlockIndexToStoreData(
+	txHash string,
+	blockIndex int,
+) (string, error) {
+	if len(txHash) == 0 {
+		return "", fmt.Errorf(
+			"incorrect hashTx - %v | block index - %v",
+			txHash,
+			blockIndex,
+		)
+	}
+	return txHash+"|"+strconv.Itoa(blockIndex), nil
+}
+func storeDataToTxHashAndBlockIndex(storeData string) (string, int, error) {
+	hashTxAndBlockIndex := strings.Split(storeData, "|")
+	if len(hashTxAndBlockIndex) != 2 || len(hashTxAndBlockIndex[0]) == 0 {
+		return "", 0, fmt.Errorf("inccorrect storeData - %v", storeData)
+	}
+	blockIndex, err := strconv.Atoi(hashTxAndBlockIndex[1])
+	if err != nil {
+		return "", 0, fmt.Errorf("inccorrect storeData - %v", storeData)
+	}
+	return hashTxAndBlockIndex[0], blockIndex, nil
+}
+
 func (ts *TransactionsStore) WriteLastIndexedTransactions(
 	AddressHashTransactions map[string][]string,
 	indexBlock int,
 ) error {
-	indexBlockStr := strconv.Itoa(indexBlock)
 	for address, hashes := range AddressHashTransactions {
 		hashIndexTransactions := make([]string, 0)
 		for _, hash := range hashes {
+			storeData, err := txHashAndBlockIndexToStoreData(hash, indexBlock)
+			if err != nil {
+				return err
+			}
 			hashIndexTransactions = append(
 				hashIndexTransactions,
-				hash+"|"+indexBlockStr,
+				storeData,
 			)
 		}
 

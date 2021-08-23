@@ -27,11 +27,38 @@ func InitialiseSynchronizer(config SynchronizerConfig) *Synchronizer {
 	}
 }
 
-func (*Synchronizer) GetAddressCursor() (string, string, error) {
-	return "", "", nil
+func (s *Synchronizer) GetAddressFirstCursorData(
+	address string,
+) (*CursorTransactions, error) {
+	cursor, err := s.store.GetCursorFromAddress(address)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.GetCursorData(cursor)
 }
-func (*Synchronizer) GetCursorData() ([]blockchain.Transaction,error) {
-	return nil, nil
+func (s *Synchronizer) GetCursorData(
+	cursor string,
+) (*CursorTransactions, error) {
+	cursorHashes, err := s.store.GetCursorTransactionHashes(cursor)
+	if err != nil {
+		return nil, err
+	}
+
+	txs := make([]*blockchain.Transaction, 0)
+	for _, hash := range cursorHashes.Hashes {
+		 tx, err := s.formatter.FormatTransactionFromHash(hash)
+		 if err != nil {
+			return nil, err
+		 }
+		txs = append(txs, tx)
+	}
+
+	return &CursorTransactions{
+		Cursor: cursor,
+		NextCursor: cursorHashes.NextCursor,
+		Transactions: txs,
+	}, nil
 }
 func (s *Synchronizer) SynchronizeAddress(
 	userId string,
