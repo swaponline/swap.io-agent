@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+
 	"swap.io-agent/src/blockchain/ethereum/api/geth"
 	ethereum "swap.io-agent/src/blockchain/ethereum/blockchainIndexer"
 	"swap.io-agent/src/blockchain/ethereum/transactionFormatter"
@@ -36,7 +37,7 @@ func main() {
 
 	transactionStore, err := levelDbStore.InitialiseTransactionStore(
 		levelDbStore.TransactionsStoreConfig{
-			Name: env.BLOCKCHAIN,
+			Name:                 env.BLOCKCHAIN,
 			DefaultScannedBlocks: env.BLOCKCHAIN_DEFAULT_SCANNED_BLOCK,
 		},
 	)
@@ -68,11 +69,7 @@ func main() {
 
 	socketServer.Register(registry)
 
-	httpServerEntity := httpServer.InitializeServer()
-	err = registry.RegisterService(httpServerEntity)
-	if err != nil {
-		log.Panicln(err.Error())
-	}
+	httpServer.Register(registry)
 
 	httpHandlerEntity := httpHandler.InitializeServer()
 	err = registry.RegisterService(httpHandlerEntity)

@@ -3,13 +3,22 @@ package httpServer
 import (
 	"io"
 	"net/http"
+
 	"swap.io-agent/src/auth"
+	"swap.io-agent/src/blockchain"
 )
 
-type HttpServer struct {}
+type HttpServer struct {
+	synhronizer blockchain.ISynchronizer
+}
+type HttpServerConfig struct {
+	Synhronizer blockchain.ISynchronizer
+}
 
-func InitializeServer() *HttpServer {
-	httpServer := HttpServer{}
+func InitializeServer(config HttpServerConfig) *HttpServer {
+	httpServer := HttpServer{
+		synhronizer: config.Synhronizer,
+	}
 
 	http.Handle("/", http.FileServer(http.Dir("static")))
 	http.HandleFunc("/getToken", func(
@@ -24,10 +33,10 @@ func InitializeServer() *HttpServer {
 	return &httpServer
 }
 
-func (_ *HttpServer) Start()  {}
+func (*HttpServer) Start() {}
 func (httpServer *HttpServer) Stop() error {
 	return nil
 }
-func (_ *HttpServer) Status() error {
+func (*HttpServer) Status() error {
 	return nil
 }

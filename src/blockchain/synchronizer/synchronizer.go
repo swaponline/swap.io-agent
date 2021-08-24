@@ -1,18 +1,19 @@
 package synchronizer
 
 import (
+	"sync"
+	"time"
+
 	"swap.io-agent/src/blockchain"
 	"swap.io-agent/src/common/Set"
 	"swap.io-agent/src/common/functions"
 	"swap.io-agent/src/env"
 	"swap.io-agent/src/levelDbStore"
-	"sync"
-	"time"
 )
 
 type Synchronizer struct {
-	formatter blockchain.IFormatter
-	store     levelDbStore.ITransactionsStore
+	formatter          blockchain.IFormatter
+	store              levelDbStore.ITransactionsStore
 	sendedTransactions map[string]Set.Set
 }
 type SynchronizerConfig struct {
@@ -23,13 +24,13 @@ type SynchronizerConfig struct {
 func InitialiseSynchronizer(config SynchronizerConfig) *Synchronizer {
 	return &Synchronizer{
 		formatter: config.Formatter,
-		store: config.Store,
+		store:     config.Store,
 	}
 }
 
 func (s *Synchronizer) GetAddressFirstCursorData(
 	address string,
-) (*CursorTransactions, error) {
+) (*blockchain.CursorTransactions, error) {
 	cursor, err := s.store.GetCursorFromAddress(address)
 	if err != nil {
 		return nil, err
@@ -39,7 +40,7 @@ func (s *Synchronizer) GetAddressFirstCursorData(
 }
 func (s *Synchronizer) GetCursorData(
 	cursor string,
-) (*CursorTransactions, error) {
+) (*blockchain.CursorTransactions, error) {
 	cursorHashes, err := s.store.GetCursorTransactionHashes(cursor)
 	if err != nil {
 		return nil, err
@@ -47,16 +48,16 @@ func (s *Synchronizer) GetCursorData(
 
 	txs := make([]*blockchain.Transaction, 0)
 	for _, hash := range cursorHashes.Hashes {
-		 tx, err := s.formatter.FormatTransactionFromHash(hash)
-		 if err != nil {
+		tx, err := s.formatter.FormatTransactionFromHash(hash)
+		if err != nil {
 			return nil, err
-		 }
+		}
 		txs = append(txs, tx)
 	}
 
-	return &CursorTransactions{
-		Cursor: cursor,
-		NextCursor: cursorHashes.NextCursor,
+	return &blockchain.CursorTransactions{
+		Cursor:       cursor,
+		NextCursor:   cursorHashes.NextCursor,
 		Transactions: txs,
 	}, nil
 }
@@ -96,7 +97,7 @@ func (s *Synchronizer) SynchronizeAddress(
 		return nil, err
 	}
 
-	return transactions,nil
+	return transactions, nil
 }
 
 func (_ *Synchronizer) Start() {}

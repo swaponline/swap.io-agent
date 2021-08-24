@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"sync"
-	"time"
 
 	socketio "github.com/googollee/go-socket.io"
 	"github.com/googollee/go-socket.io/engineio"
@@ -45,7 +44,7 @@ func InitializeServer(config Config) *SocketServer {
 	})
 	socketServer.io.OnEvent("/", "subscribe", func(s socketio.Conn, payload SubscribeEventPayload) string {
 		userId := s.Context().(string)
-		endTime := int(time.Now().Unix())
+		//endTime := int(time.Now().Unix())
 		err := config.subscribeManager.SubscribeUserToAddress(
 			userId,
 			payload.Address,
@@ -59,26 +58,7 @@ func InitializeServer(config Config) *SocketServer {
 			return "error"
 		}
 		log.Println(payload)
-		transactions, err := config.synchronizer.SynchronizeAddress(
-			userId,
-			payload.Address,
-			payload.StartTime,
-			endTime,
-		)
-		if err != nil {
-			log.Println(err)
-			return "error"
-		}
-
-		if data, err := json.Marshal(SynchroniseAddressData{
-			Transactions: transactions,
-			Address:      payload.Address,
-		}); err == nil {
-			return string(data)
-		} else {
-			log.Println(err)
-			return "error"
-		}
+		return ""
 	})
 	socketServer.io.OnDisconnect("/", func(s socketio.Conn, reason string) {
 		userId := s.Context()

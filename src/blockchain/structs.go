@@ -18,8 +18,8 @@ type Transaction struct {
 	AllSpendAddresses []string
 }
 type SpendsInfo struct {
-	Asset     SpendsAsset `json:"asset"`
-	Entries   []Spend     `json:"entries"`
+	Asset   SpendsAsset `json:"asset"`
+	Entries []Spend     `json:"entries"`
 }
 type SpendsAsset struct {
 	Id      string `json:"id"`
@@ -35,4 +35,9 @@ type Spend struct {
 type TransactionPipeData struct {
 	Subscribers []string
 	Transaction *Transaction
+}
+type CursorTransactions struct {
+	Cursor       string
+	NextCursor   string
+	Transactions []*Transaction
 }

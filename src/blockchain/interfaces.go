@@ -12,12 +12,12 @@ type IFormatter interface {
 	FormatTransactionFromHash(hash string) (*Transaction, error)
 }
 type ISynchronizer interface {
-	SynchronizeAddress(
-		userId string,
+	GetAddressFirstCursorData(
 		address string,
-		startTime int,
-		endTime int,
-	)([]*Transaction, error)
+	) (*CursorTransactions, error)
+	GetCursorData(
+		cursor string,
+	) (*CursorTransactions, error)
 }
 type ISubscribeManager interface {
 	SubscribeUserToAddress(
