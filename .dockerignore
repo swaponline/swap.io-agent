@@ -2,6 +2,7 @@
 .vscode
 .env.development
 .env.production
+.env.example
 .env
 
 deploy.sh

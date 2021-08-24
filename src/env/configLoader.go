@@ -2,10 +2,10 @@ package env
 
 import (
 	"errors"
-	"github.com/joho/godotenv"
-	"log"
 	"os"
 	"strconv"
+
+	"github.com/joho/godotenv"
 )
 
 var PORT int
@@ -19,21 +19,7 @@ var REDIS_DB int
 var ETHERSCAN_API_KEY string
 
 func InitializeConfig() error {
-	mode := os.Args[1]
-	log.Printf("Starting width mode - %v", mode)
-
-	if mode == "production" {
-		err := godotenv.Load(".env.production")
-		if err != nil {
-			return err
-		}
-	} else {
-		err := godotenv.Load(".env.development")
-		if err != nil {
-			return err
-		}
-	}
-
+	godotenv.Load()
 	PortInt, err := strconv.Atoi(os.Getenv("PORT"))
 	if err != nil {
 		return errors.New("SET PORT IN ENV")
