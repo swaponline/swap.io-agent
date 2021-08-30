@@ -1,6 +1,8 @@
 package synchronizer
 
 import (
+	"encoding/json"
+	"log"
 	"sync"
 	"time"
 
@@ -43,12 +45,17 @@ func (s *Synchronizer) GetCursorData(
 ) (*blockchain.CursorTransactions, error) {
 	cursorHashes, err := s.store.GetCursorTransactionHashes(cursor)
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
+	e, _ := json.Marshal(cursorHashes)
+	log.Println(string(e))
 
 	txs := make([]*blockchain.Transaction, 0)
 	for _, hash := range cursorHashes.Hashes {
+		log.Println(hash)
 		tx, err := s.formatter.FormatTransactionFromHash(hash)
+		log.Println(err)
 		if err != nil {
 			return nil, err
 		}

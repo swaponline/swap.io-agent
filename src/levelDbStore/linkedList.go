@@ -2,13 +2,14 @@ package levelDbStore
 
 import (
 	"fmt"
-	"github.com/syndtr/goleveldb/leveldb"
 	"strconv"
 	"strings"
+
+	"github.com/syndtr/goleveldb/leveldb"
 )
 
 func dataToKey(head string, index int) string {
-	return head+"|"+strconv.Itoa(index)
+	return head + "|" + strconv.Itoa(index)
 }
 func keyToData(key string) (string, int, error) {
 	parsedKey := strings.Split(key, "|")
@@ -36,16 +37,17 @@ func LinkedListKeyValuesGetCursorData(
 	}
 	_, _, err := keyToData(cursor)
 	if err != nil {
-		return []string{}, "null", err
+		return []string{}, "null", nil
 	}
 
 	data, err := db.Get([]byte(cursor), nil)
-	if err != nil {
+	if err != nil && err != leveldb.ErrNotFound {
 		return []string{}, "null", err
 	}
+
 	nextCursor, err := LinkedListKeyValuesGetNextCursor(cursor)
 	if err != nil {
-		return []string{}, "null", err
+		return []string{}, "null", nil
 	}
 
 	return strings.Split(string(data), " "), nextCursor, nil
@@ -105,7 +107,7 @@ func LinkedListKeyValuesPush(
 		return err
 	}
 	if err == leveldb.ErrNotFound {
-		newTail := []byte(head+`|0`)
+		newTail := []byte(head + `|0`)
 		batch.Put(
 			headKey,
 			newTail,
@@ -123,7 +125,7 @@ func LinkedListKeyValuesPush(
 	}
 
 	newTail := []byte(
-		head+"|"+strconv.Itoa(index+1),
+		head + "|" + strconv.Itoa(index+1),
 	)
 	batch.Put(
 		headKey,
@@ -154,12 +156,12 @@ func LinkedListKeyValuePush(
 		return err
 	}
 	if err == leveldb.ErrNotFound {
-		newTail := []byte(head+"|"+strconv.Itoa(len(data)))
+		newTail := []byte(head + "|" + strconv.Itoa(len(data)))
 		batch.Put(
 			headKey,
 			newTail,
 		)
-		for t:=0; t<len(data); t++ {
+		for t := 0; t < len(data); t++ {
 			batch.Put(
 				[]byte(head+"|"+strconv.Itoa(t)),
 				[]byte(data[t]),
@@ -174,7 +176,7 @@ func LinkedListKeyValuePush(
 	}
 
 	newTail := []byte(
-		head+"|"+strconv.Itoa(index+len(data)),
+		head + "|" + strconv.Itoa(index+len(data)),
 	)
 	batch.Put(
 		headKey,
@@ -183,12 +185,12 @@ func LinkedListKeyValuePush(
 	if err != nil {
 		return err
 	}
-	for t:=0; t<len(data); t++ {
+	for t := 0; t < len(data); t++ {
 		batch.Put(
 			[]byte(head+"|"+strconv.Itoa(index)),
 			[]byte(data[t]),
 		)
-		index+=1
+		index += 1
 	}
 
 	return err

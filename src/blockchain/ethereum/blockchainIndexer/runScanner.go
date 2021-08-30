@@ -2,15 +2,15 @@ package ethereum
 
 import (
 	"log"
+	"time"
+
 	"swap.io-agent/src/blockchain"
 	"swap.io-agent/src/blockchain/ethereum/api"
-	"time"
 )
-
 
 func (indexer *BlockchainIndexer) RunScanner() {
 	allIndexedTransactions := 0
-	currentBlock := indexer.transactionsStore.GetLastTransactionBlock()+1
+	currentBlock := indexer.transactionsStore.GetLastTransactionBlock() + 1
 
 	for {
 		block, err := indexer.api.GetBlockByIndex(
@@ -38,7 +38,7 @@ func (indexer *BlockchainIndexer) RunScanner() {
 
 		indexedTransactions := make(map[string][]string)
 		//indexingTransactions(indexedTransactions, transactions)
-		allIndexedTransactions+=len(block.Transactions)
+		allIndexedTransactions += len(block.Transactions)
 		log.Println("indexed transactions -", len(block.Transactions))
 		log.Println("all indexed transactions -", allIndexedTransactions)
 
@@ -46,7 +46,7 @@ func (indexer *BlockchainIndexer) RunScanner() {
 			indexedTransactions, currentBlock,
 		)
 
-		currentBlock+=1
+		currentBlock += 1
 	}
 
 	close(indexer.isSynchronize)
@@ -66,23 +66,25 @@ func (indexer *BlockchainIndexer) RunScanner() {
 		}
 		log.Println(currentBlock, "|", block.Number, "- ok")
 
-		transactions        := indexer.formatBlockTransactions(block)
+		transactions := indexer.formatBlockTransactions(block)
 
 		indexedTransactions := make(map[string][]string)
 		indexingTransactions(indexedTransactions, transactions)
-		allIndexedTransactions+=len(transactions)
+		allIndexedTransactions += len(transactions)
 		log.Println("indexed transactions -", len(transactions))
 		log.Println("all indexed transactions -", allIndexedTransactions)
 
 		indexer.writeIndexedTransactionToStore(
 			indexedTransactions, currentBlock,
 		)
+		for indexer.transactionsStore.Flush() != nil {
+		}
 
 		for _, transaction := range transactions {
 			indexer.NewTransactions <- transaction
 		}
 
-		currentBlock+=1
+		currentBlock += 1
 	}
 }
 
@@ -104,7 +106,7 @@ func (indexer *BlockchainIndexer) writeIndexedTransactionToStore(
 func (indexer *BlockchainIndexer) formatBlockTransactions(
 	block *api.Block,
 ) []*blockchain.Transaction {
-	transactions        := make([]*blockchain.Transaction, 0)
+	transactions := make([]*blockchain.Transaction, 0)
 	for _, blockTx := range block.Transactions {
 		for {
 			transaction, err := indexer.formatter.FormatTransaction(&blockTx, block)

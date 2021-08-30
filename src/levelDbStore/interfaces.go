@@ -11,6 +11,7 @@ type ITransactionsStore interface {
 		AddressHashTransactions map[string][]string,
 		indexBlock int,
 	) error
+	Flush() error
 	GetCursorFromAddress(
 		address string,
 	) (string, error)
@@ -19,5 +20,5 @@ type ITransactionsStore interface {
 	) (*CursorTransactionHashes, error)
 	GetFirstCursorTransactionHashes(
 		address string,
-	) (*CursorTransactionHashes,error)
+	) (*CursorTransactionHashes, error)
 }

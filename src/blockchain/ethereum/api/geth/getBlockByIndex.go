@@ -13,6 +13,14 @@ import (
 	"swap.io-agent/src/blockchain/ethereum/api"
 )
 
+/*
+curl --location --request POST 'localhost:8545/' --header 'Content-Type: application/json' --data-raw '{
+"method": "eth_getBlockByNumber",
+"params": ["0xa68a4e", true],
+"jsonrpc": "2.0",
+"id": "2"
+}'
+*/
 func (e *Geth) GetBlockByIndex(index int) (*api.Block, int) {
 	log.Println("get block", index, "0x"+strconv.FormatInt(int64(index), 16))
 	res, err := http.Post(
@@ -23,7 +31,7 @@ func (e *Geth) GetBlockByIndex(index int) (*api.Block, int) {
 				`{
 					"jsonrpc":"2.0",
 					"method":"eth_getBlockByNumber",
-                    "params":["%v", true],
+                   "params":["%v", true],
 					"id":1
 				}`,
 				"0x"+strconv.FormatInt(int64(index), 16),
@@ -64,7 +72,7 @@ func (e *Geth) GetBlockByIndex(index int) (*api.Block, int) {
 		return nil, api.ParseBodyError
 	}
 	if &resBody.Result == nil {
-		log.Println(string(resBodyBytes))
+		log.Println(string(resBodyBytes), "result = null")
 		return nil, api.NotExistBlockError
 	}
 

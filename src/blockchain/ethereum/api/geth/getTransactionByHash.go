@@ -12,17 +12,18 @@ import (
 	"swap.io-agent/src/blockchain/ethereum/api"
 )
 
+/*
+curl --location --request POST 'localhost:8545/' --header 'Content-Type: application/json' --data-raw '{
+"method": "eth_getTransactionByHash",
+"params": ["0x3837729b0628eef5acfab9a726271b1f2a9365e59a29f889e73c663d36088be3"],
+"jsonrpc": "2.0",
+"id": "2"
+}'
+*/
 func (e *Geth) GetTransactionByHash(
 	hash string,
 ) (*api.BlockTransaction, int) {
-	/*
-	   curl --location --request POST 'localhost:8545/' --header 'Content-Type: application/json' --data-raw '{
-	   "method": "eth_getTransactionByHash",
-	   "params": ["0x7c9b1e9bdc3560195bd6cbe0b72f85ebc67c4edfc9333b87462be2f91e6aa872"],
-	   "jsonrpc": "2.0",
-	   "id": "2"
-	   }'
-	*/
+
 	res, err := http.Post(
 		e.baseUrl,
 		"application/json",

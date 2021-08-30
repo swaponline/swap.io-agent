@@ -3,10 +3,11 @@ package levelDbStore
 import (
 	"errors"
 	"fmt"
-	"github.com/syndtr/goleveldb/leveldb"
 	"log"
 	"strconv"
 	"strings"
+
+	"github.com/syndtr/goleveldb/leveldb"
 )
 
 type writeBuffer struct {
@@ -26,6 +27,7 @@ type TransactionsStoreConfig struct {
 }
 
 const dbDir = "./blockchainIndexes/"
+
 var lastBlockKey = []byte("lastBlock")
 
 func InitialiseTransactionStore(config TransactionsStoreConfig) (*TransactionsStore, error) {
@@ -38,33 +40,36 @@ func InitialiseTransactionStore(config TransactionsStoreConfig) (*TransactionsSt
 
 	var lastBlock int
 	switch lastBlockStr, err := db.Get(lastBlockKey, nil); err {
-	case nil: {
-		lastBlockStrNum, err := strconv.Atoi(string(lastBlockStr))
-		if err != nil {
-			return nil, errors.New("num last block not parsed")
+	case nil:
+		{
+			lastBlockStrNum, err := strconv.Atoi(string(lastBlockStr))
+			if err != nil {
+				return nil, errors.New("num last block not parsed")
+			}
+			lastBlock = lastBlockStrNum
 		}
-		lastBlock = lastBlockStrNum
-	}
-	case leveldb.ErrNotFound: {
-		err = db.Put(
-			lastBlockKey,
-			[]byte(strconv.Itoa(config.DefaultScannedBlocks)),
-			nil,
-		)
-		if err != nil {
-			return nil, errors.New("not set value to lastBlockKey")
+	case leveldb.ErrNotFound:
+		{
+			err = db.Put(
+				lastBlockKey,
+				[]byte(strconv.Itoa(config.DefaultScannedBlocks)),
+				nil,
+			)
+			if err != nil {
+				return nil, errors.New("not set value to lastBlockKey")
+			}
+			lastBlock = config.DefaultScannedBlocks
 		}
-		lastBlock = config.DefaultScannedBlocks
-	}
-	default: return nil, errors.New("error then get last block index")
+	default:
+		return nil, errors.New("error then get last block index")
 	}
 
 	return &TransactionsStore{
-		db: db,
+		db:        db,
 		lastBlock: lastBlock,
 		writeBuffer: writeBuffer{
-			buf: map[string][]string{},
-			size: 0,
+			buf:       map[string][]string{},
+			size:      0,
 			lastBlock: -1,
 		},
 	}, nil
@@ -82,6 +87,7 @@ func (ts *TransactionsStore) GetCursorFromAddress(address string) (string, error
 	if err != nil {
 		return "null", err
 	}
+
 	return string(cursor), nil
 }
 func (ts *TransactionsStore) GetCursorTransactionHashes(
@@ -103,14 +109,14 @@ func (ts *TransactionsStore) GetCursorTransactionHashes(
 	}
 
 	return &CursorTransactionHashes{
-		Cursor: cursor,
+		Cursor:     cursor,
 		NextCursor: nextCursor,
-		Hashes: hashes,
+		Hashes:     hashes,
 	}, nil
 }
 func (ts *TransactionsStore) GetFirstCursorTransactionHashes(
 	address string,
-) (*CursorTransactionHashes,error) {
+) (*CursorTransactionHashes, error) {
 	cursor, _, err := LinkedListKeyValuesGetFirstCursor(
 		ts.db, address,
 	)
@@ -167,7 +173,7 @@ func txHashAndBlockIndexToStoreData(
 			blockIndex,
 		)
 	}
-	return txHash+"|"+strconv.Itoa(blockIndex), nil
+	return txHash + "|" + strconv.Itoa(blockIndex), nil
 }
 func storeDataToTxHashAndBlockIndex(storeData string) (string, int, error) {
 	hashTxAndBlockIndex := strings.Split(storeData, "|")
@@ -200,12 +206,12 @@ func (ts *TransactionsStore) WriteLastIndexedTransactions(
 
 		ts.writeBuffer.buf[address] = append(
 			ts.writeBuffer.buf[address],
-			hashIndexTransactions...
+			hashIndexTransactions...,
 		)
-		ts.writeBuffer.size+=len(hashes)
+		ts.writeBuffer.size += len(hashes)
 	}
 
-	ts.lastBlock             = indexBlock
+	ts.lastBlock = indexBlock
 	ts.writeBuffer.lastBlock = indexBlock
 	if ts.writeBuffer.size > 1024 {
 		return ts.Flush()
@@ -215,7 +221,7 @@ func (ts *TransactionsStore) WriteLastIndexedTransactions(
 }
 func (ts *TransactionsStore) Flush() error {
 	if ts.writeBuffer.size > 0 ||
-	   ts.writeBuffer.lastBlock != -1 {
+		ts.writeBuffer.lastBlock != -1 {
 		dbTransaction, err := ts.db.OpenTransaction()
 		if err != nil {
 			return err
@@ -259,8 +265,8 @@ func (ts *TransactionsStore) Flush() error {
 		log.Println("written transactions -", ts.writeBuffer.size)
 		log.Println("updated lastBlock -", ts.writeBuffer.lastBlock)
 
-		ts.writeBuffer.buf       = make(map[string][]string)
-		ts.writeBuffer.size      = 0
+		ts.writeBuffer.buf = make(map[string][]string)
+		ts.writeBuffer.size = 0
 		ts.writeBuffer.lastBlock = -1
 	}
 

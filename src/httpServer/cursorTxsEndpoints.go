@@ -2,6 +2,7 @@ package httpServer
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 )
 
@@ -9,7 +10,7 @@ import (
 
 func (server *HttpServer) InitializeCursorTxsEndoints() {
 	http.HandleFunc(
-		"/getCursorTransactions/:address",
+		"/getFirstCursorTransactions",
 		func(rw http.ResponseWriter, r *http.Request) {
 			address := r.URL.Query().Get("address")
 			if len(address) == 0 {
@@ -22,10 +23,14 @@ func (server *HttpServer) InitializeCursorTxsEndoints() {
 				address,
 			)
 			if err != nil {
+				log.Println(err)
 				rw.WriteHeader(http.StatusInternalServerError)
+				return
 			}
 			if data, err := json.Marshal(cursorData); err == nil {
 				rw.Write(data)
+			} else {
+				log.Println(err)
 			}
 			rw.WriteHeader(http.StatusInternalServerError)
 		},
@@ -44,12 +49,17 @@ func (server *HttpServer) InitializeCursorTxsEndoints() {
 				cursor,
 			)
 			if err != nil {
+				log.Println(err)
 				rw.WriteHeader(http.StatusInternalServerError)
+				return
 			}
 			if data, err := json.Marshal(cursorData); err == nil {
 				rw.Write(data)
 				return
+			} else {
+				log.Println(err)
 			}
+
 			rw.WriteHeader(http.StatusInternalServerError)
 		},
 	)

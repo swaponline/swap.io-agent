@@ -40,16 +40,18 @@ func (tf *TransactionFormatter) FormatTransactionFromHash(
 		)
 	}
 
-	transactionBlockIndex, errConv := strconv.Atoi(transaction.BlockNumber)
+	transactionBlockIndex, errConv := strconv.ParseInt(transaction.BlockNumber, 0, 64)
 	if errConv != nil {
 		return nil, errConv
 	}
-	blockTransaction, err := tf.api.GetBlockByIndex(transactionBlockIndex)
+	blockTransaction, err := tf.api.GetBlockByIndex(int(transactionBlockIndex))
 	if err != api.RequestSuccess {
 		return nil, fmt.Errorf(
 			"not get transaction block by index %v", err,
 		)
 	}
+
+	log.Println("OK ----------------- 54")
 
 	return tf.FormatTransaction(transaction, blockTransaction)
 }

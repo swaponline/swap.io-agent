@@ -29,6 +29,7 @@ func InitializeServer(config HttpServerConfig) *HttpServer {
 			io.WriteString(writer, token)
 		}
 	})
+	httpServer.InitializeCursorTxsEndoints()
 
 	return &httpServer
 }
