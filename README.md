@@ -4,6 +4,6 @@
 
 A set of agents that mediate interactions between swap.io-ledger and blockchains
 
-fill in .env.development or .env.production how in .env.example
-go build
-./swap.io-agent (development || production)
+fill in .env how in .env.example  
+go build  
+./swap.io-agent  
