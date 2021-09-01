@@ -2,10 +2,10 @@ package transactionFormatter
 
 import (
 	"log"
-	"swap.io-agent/src/blockchain/ethereum/api/geth"
+
+	"swap.io-agent/src/blockchain/ethereum/nodeApi/geth"
 	"swap.io-agent/src/serviceRegistry"
 )
-
 
 func Register(reg *serviceRegistry.ServiceRegistry) {
 	var api *geth.Geth

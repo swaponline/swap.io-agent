@@ -6,12 +6,13 @@ import (
 	"io"
 	"net/http"
 
-	"swap.io-agent/src/blockchain/ethereum/api"
+	"swap.io-agent/src/blockchain"
+	"swap.io-agent/src/blockchain/ethereum/nodeApi"
 )
 
 func (e *Etherscan) GetTransactionByHash(
 	hash string,
-) (*api.BlockTransaction, int) {
+) (*nodeApi.BlockTransaction, int) {
 	res, err := http.Get(
 		fmt.Sprintf(
 			"%v/api?module=proxy&action=eth_getTransactionByHash&apikey=%v&txhash=%v",
@@ -21,18 +22,18 @@ func (e *Etherscan) GetTransactionByHash(
 		),
 	)
 	if err != nil {
-		return nil, api.RequestError
+		return nil, blockchain.ApiRequestError
 	}
 
 	resBody, err := io.ReadAll(res.Body)
 	if err != nil && err != io.EOF {
-		return nil, api.ParseBodyError
+		return nil, blockchain.ApiParseBodyError
 	}
 
 	var resData getTransactionByHashResponse
 	if err := json.Unmarshal(resBody, &resData); err != nil {
-		return nil, api.RequestError
+		return nil, blockchain.ApiParseBodyError
 	}
 
-	return &resData.Result, api.RequestSuccess
+	return &resData.Result, blockchain.ApiRequestSuccess
 }

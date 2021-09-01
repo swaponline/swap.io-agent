@@ -1,4 +1,4 @@
-package api
+package nodeApi
 
 type Block struct {
 	Difficulty       string `json:"difficulty"`

@@ -1,13 +1,17 @@
 package blockchain
 
 import (
-	"swap.io-agent/src/blockchain/ethereum/api"
+	"swap.io-agent/src/blockchain/ethereum/nodeApi"
 )
 
+type IBlockchinApi interface {
+	GetBlockByIndex(index int) (*Block, int)
+	GetTransactionByHash(hash string) (*Transaction, int)
+}
 type IFormatter interface {
 	FormatTransaction(
-		blockTransaction *api.BlockTransaction,
-		block *api.Block,
+		blockTransaction *nodeApi.BlockTransaction,
+		block *nodeApi.Block,
 	) (*Transaction, error)
 	FormatTransactionFromHash(hash string) (*Transaction, error)
 }

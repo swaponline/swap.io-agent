@@ -8,10 +8,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"swap.io-agent/src/blockchain/ethereum/api"
+	"swap.io-agent/src/blockchain"
+	"swap.io-agent/src/blockchain/ethereum/nodeApi"
 )
 
-func (e *Etherscan) GetBlockByIndex(index int) (*api.Block, int) {
+func (e *Etherscan) GetBlockByIndex(index int) (*nodeApi.Block, int) {
 	log.Println("get block", index, "0x"+strconv.FormatInt(int64(index), 16))
 	res, err := http.Get(
 		fmt.Sprintf(
@@ -22,12 +23,12 @@ func (e *Etherscan) GetBlockByIndex(index int) (*api.Block, int) {
 		),
 	)
 	if err != nil {
-		return nil, api.RequestError
+		return nil, blockchain.ApiRequestError
 	}
 
 	resBody, err := io.ReadAll(res.Body)
 	if err != nil && err != io.EOF {
-		return nil, api.ParseBodyError
+		return nil, blockchain.ApiParseBodyError
 	}
 	var resError apiError
 	var resData getBlockResponse
@@ -35,24 +36,24 @@ func (e *Etherscan) GetBlockByIndex(index int) (*api.Block, int) {
 	// insert in error struct
 	if err = json.Unmarshal(resBody, &resError); err == nil {
 		if resError.Result == "Max rate limit reached" {
-			return nil, api.RequestLimitError
+			return nil, blockchain.ApiRequestLimitError
 		}
 		// if error parsed width empty filed then block not exit
 		if resError.Result == "" &&
 			resError.Status == "" &&
 			resError.Message == "" {
-			return nil, api.NotExistBlockError
+			return nil, blockchain.ApiNotExistBlockError
 		}
-		return nil, api.RequestError
+		return nil, blockchain.ApiRequestError
 	}
 
 	if err = json.Unmarshal(resBody, &resData); err != nil {
 		log.Println(err)
-		return nil, api.ParseBodyError
+		return nil, blockchain.ApiParseBodyError
 	}
 	if &resData.Result == nil {
-		return nil, api.NotExistBlockError
+		return nil, blockchain.ApiNotExistBlockError
 	}
 
-	return &resData.Result, api.RequestSuccess
+	return &resData.Result, blockchain.ApiRequestSuccess
 }

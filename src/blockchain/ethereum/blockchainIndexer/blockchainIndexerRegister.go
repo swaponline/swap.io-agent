@@ -2,7 +2,8 @@ package ethereum
 
 import (
 	"log"
-	"swap.io-agent/src/blockchain/ethereum/api/geth"
+
+	"swap.io-agent/src/blockchain/ethereum/nodeApi/geth"
 	"swap.io-agent/src/blockchain/ethereum/transactionFormatter"
 	"swap.io-agent/src/levelDbStore"
 	"swap.io-agent/src/serviceRegistry"
@@ -29,9 +30,9 @@ func BlockchainIndexerRegister(reg *serviceRegistry.ServiceRegistry) {
 
 	err = reg.RegisterService(
 		InitializeIndexer(BlockchainIndexerConfig{
-			Api: api,
+			Api:               api,
 			TransactionsStore: transactionStore,
-			Formatter: formatter,
+			Formatter:         formatter,
 		}),
 	)
 	if err != nil {

@@ -1,20 +1,20 @@
 package ethereum
 
-import "swap.io-agent/src/blockchain/ethereum/api"
+import "swap.io-agent/src/blockchain/ethereum/nodeApi"
 
 type IGeth interface {
 	GetBlockByIndex(
 		index int,
-	) (*api.Block, int)
+	) (*nodeApi.Block, int)
 	GetTransactionByHash(
 		hash string,
-	) (*api.BlockTransaction, int)
+	) (*nodeApi.BlockTransaction, int)
 	GetTransactionLogs(
 		hash string,
-	) (*api.TransactionLogs, int)
+	) (*nodeApi.TransactionLogs, int)
 	GetInternalTransaction(
 		hash string,
-	) (*api.InteranlTransaction, int)
+	) (*nodeApi.InteranlTransaction, int)
 	GetBlockTraceByIndex(
 		index string,
 	) (interface{}, int)

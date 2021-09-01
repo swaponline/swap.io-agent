@@ -1,6 +1,6 @@
 package ethercsan
 
-import "swap.io-agent/src/blockchain/ethereum/api"
+import "swap.io-agent/src/blockchain/ethereum/nodeApi"
 
 type apiError struct {
 	Status  string `json:"status"`
@@ -10,19 +10,19 @@ type apiError struct {
 type GetTransactionLogsResponse struct {
 	Jsonrpc string `json:"jsonrpc"`
 	Id      int    `json:"id"`
-	Result  api.TransactionLogs
+	Result  nodeApi.TransactionLogs
 }
 type getCurrentBlockIndexResponse struct {
-	Id int `json:"id"`
+	Id     int    `json:"id"`
 	Result string `json:"result"`
 }
 type getBlockResponse struct {
-	Jsonrpc string `json:"jsonrpc"`
-	Id      int    `json:"id"`
-	Result  api.Block `json:"result"`
+	Jsonrpc string        `json:"jsonrpc"`
+	Id      int           `json:"id"`
+	Result  nodeApi.Block `json:"result"`
 }
 type getTransactionByHashResponse struct {
-	Jsonrpc string `json:"jsonrpc"`
-	Id      int    `json:"id"`
-	Result  api.BlockTransaction `json:"result"`
+	Jsonrpc string                   `json:"jsonrpc"`
+	Id      int                      `json:"id"`
+	Result  nodeApi.BlockTransaction `json:"result"`
 }

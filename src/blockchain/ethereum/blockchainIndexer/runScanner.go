@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"swap.io-agent/src/blockchain"
-	"swap.io-agent/src/blockchain/ethereum/api"
 )
 
 func (indexer *BlockchainIndexer) RunScanner() {

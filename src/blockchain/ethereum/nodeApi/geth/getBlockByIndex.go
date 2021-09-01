@@ -10,7 +10,8 @@ import (
 	"strconv"
 	"strings"
 
-	"swap.io-agent/src/blockchain/ethereum/api"
+	"swap.io-agent/src/blockchain"
+	nodeApi "swap.io-agent/src/blockchain/ethereum/nodeApi"
 )
 
 /*
@@ -21,7 +22,7 @@ curl --location --request POST 'localhost:8545/' --header 'Content-Type: applica
 "id": "2"
 }'
 */
-func (e *Geth) GetBlockByIndex(index int) (*api.Block, int) {
+func (e *Geth) GetBlockByIndex(index int) (*nodeApi.Block, int) {
 	log.Println("get block", index, "0x"+strconv.FormatInt(int64(index), 16))
 	res, err := http.Post(
 		e.baseUrl,
@@ -40,14 +41,14 @@ func (e *Geth) GetBlockByIndex(index int) (*api.Block, int) {
 	)
 	if err != nil {
 		log.Println(err)
-		return nil, api.RequestError
+		return nil, blockchain.ApiRequestError
 	}
 	defer res.Body.Close()
 
 	resBodyBytes, err := io.ReadAll(res.Body)
 	if err != nil && err != io.EOF {
 		log.Println(err)
-		return nil, api.ParseBodyError
+		return nil, blockchain.ApiParseBodyError
 	}
 	var resError apiError
 	var resBody getBlockResponse
@@ -56,25 +57,25 @@ func (e *Geth) GetBlockByIndex(index int) (*api.Block, int) {
 	if err = json.Unmarshal(resBodyBytes, &resError); err == nil {
 		log.Println(err, string(resBodyBytes))
 		if resError.Result == "Max rate limit reached" {
-			return nil, api.RequestLimitError
+			return nil, blockchain.ApiRequestLimitError
 		}
 		// if error parsed width empty filed then block not exit
 		if resError.Result == "" &&
 			resError.Status == "" &&
 			resError.Message == "" {
-			return nil, api.NotExistBlockError
+			return nil, blockchain.ApiNotExistBlockError
 		}
-		return nil, api.RequestError
+		return nil, blockchain.ApiRequestError
 	}
 
 	if err = json.Unmarshal(resBodyBytes, &resBody); err != nil {
 		log.Println(err, string(resBodyBytes))
-		return nil, api.ParseBodyError
+		return nil, blockchain.ApiParseBodyError
 	}
 	if &resBody.Result == nil {
 		log.Println(string(resBodyBytes), "result = null")
-		return nil, api.NotExistBlockError
+		return nil, blockchain.ApiNotExistBlockError
 	}
 
-	return &resBody.Result, api.RequestSuccess
+	return &resBody.Result, blockchain.ApiRequestSuccess
 }

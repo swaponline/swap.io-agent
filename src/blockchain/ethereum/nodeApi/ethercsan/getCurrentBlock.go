@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"swap.io-agent/src/blockchain/ethereum/api"
+	"swap.io-agent/src/blockchain"
 )
 
 func (e *Etherscan) GetCurrentIndexBlock() (int, int) {
@@ -19,12 +19,12 @@ func (e *Etherscan) GetCurrentIndexBlock() (int, int) {
 		),
 	)
 	if err != nil {
-		return 0, api.RequestError
+		return 0, blockchain.ApiRequestError
 	}
 
 	var currentBlockInfo getCurrentBlockIndexResponse
 	if err = json.NewDecoder(res.Body).Decode(&currentBlockInfo); err != nil {
-		return 0, api.ParseBodyError
+		return 0, blockchain.ApiParseBodyError
 	}
 
 	currentBlockId, err := strconv.ParseInt(
@@ -33,8 +33,8 @@ func (e *Etherscan) GetCurrentIndexBlock() (int, int) {
 		64,
 	)
 	if err != nil {
-		return 0, api.ParseIndexError
+		return 0, blockchain.ApiParseIndexError
 	}
 
-	return int(currentBlockId), api.RequestSuccess
+	return int(currentBlockId), blockchain.ApiRequestSuccess
 }

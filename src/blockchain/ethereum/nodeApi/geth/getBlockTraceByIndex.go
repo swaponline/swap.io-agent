@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"swap.io-agent/src/blockchain/ethereum/api"
+	"swap.io-agent/src/blockchain"
 )
 
 /*
@@ -35,7 +35,7 @@ func (e *Geth) GetBlockTraceByIndex(index string) (interface{}, int) {
 		),
 	)
 	if err != nil {
-		return nil, api.RequestError
+		return nil, blockchain.ApiRequestError
 	}
 	defer res.Body.Close()
 

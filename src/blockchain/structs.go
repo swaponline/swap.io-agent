@@ -1,5 +1,8 @@
 package blockchain
 
+type Block struct {
+	Transactions []Transaction
+}
 type Transaction struct {
 	From              string       `json:"from"`
 	Gas               string       `json:"gas"`

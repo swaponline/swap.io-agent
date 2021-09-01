@@ -2,6 +2,7 @@ package synchronizer
 
 import (
 	"log"
+
 	"swap.io-agent/src/blockchain/ethereum/transactionFormatter"
 	"swap.io-agent/src/levelDbStore"
 	"swap.io-agent/src/serviceRegistry"
@@ -20,10 +21,10 @@ func Register(reg *serviceRegistry.ServiceRegistry) {
 	}
 
 	err = reg.RegisterService(
-		 InitialiseSynchronizer(SynchronizerConfig{
-		 	Formatter: formatter,
-		 	Store: transactionStore,
-		 }),
+		InitialiseSynchronizer(SynchronizerConfig{
+			Formatter: formatter,
+			Store:     transactionStore,
+		}),
 	)
 	if err != nil {
 		log.Panicln(err)

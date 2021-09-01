@@ -8,7 +8,8 @@ import (
 	"net/http"
 	"strings"
 
-	"swap.io-agent/src/blockchain/ethereum/api"
+	"swap.io-agent/src/blockchain"
+	"swap.io-agent/src/blockchain/ethereum/nodeApi"
 )
 
 /*
@@ -19,7 +20,7 @@ curl --location --request POST 'localhost:8545/' --header 'Content-Type: applica
 "id": "2"
 }'
 */
-func (e *Geth) GetInternalTransaction(hash string) (*api.InteranlTransaction, int) {
+func (e *Geth) GetInternalTransaction(hash string) (*nodeApi.InteranlTransaction, int) {
 	res, err := http.Post(
 		e.baseUrl,
 		"application/json",
@@ -38,20 +39,20 @@ func (e *Geth) GetInternalTransaction(hash string) (*api.InteranlTransaction, in
 		),
 	)
 	if err != nil {
-		return nil, api.RequestError
+		return nil, blockchain.ApiRequestError
 	}
 	defer res.Body.Close()
 
 	resBodyBytes, err := io.ReadAll(res.Body)
 	if err != nil && err != io.EOF {
 		log.Println(err)
-		return nil, api.ParseBodyError
+		return nil, blockchain.ApiParseBodyError
 	}
 	var resBody GetInternalTransactionsResponse
 	if err := json.Unmarshal(resBodyBytes, &resBody); err != nil {
 		log.Println(err, string(resBodyBytes))
-		return nil, api.RequestError
+		return nil, blockchain.ApiParseBodyError
 	}
 
-	return &resBody.Result, api.RequestSuccess
+	return &resBody.Result, blockchain.ApiRequestSuccess
 }
