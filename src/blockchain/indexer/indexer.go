@@ -17,6 +17,8 @@ type IndexerConfig struct {
 }
 
 func InitializeIndexer(config IndexerConfig) *Indexer {
+	blockchainApis := map[string]blockchain.IBlockchinApi{}
+
 	indexer := &Indexer{
 		api:               config.Api,
 		transactionsStore: config.TransactionsStore,

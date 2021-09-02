@@ -3,8 +3,7 @@ package main
 import (
 	"log"
 
-	"swap.io-agent/src/blockchain/ethereum/api/geth"
-	ethereum "swap.io-agent/src/blockchain/ethereum/blockchainIndexer"
+	"swap.io-agent/src/blockchain/ethereum/nodeApi/geth"
 	"swap.io-agent/src/blockchain/ethereum/transactionFormatter"
 	"swap.io-agent/src/blockchain/subscribeManager"
 	"swap.io-agent/src/blockchain/synchronizer"

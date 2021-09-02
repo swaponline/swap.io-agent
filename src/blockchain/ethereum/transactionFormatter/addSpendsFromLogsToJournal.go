@@ -4,14 +4,14 @@ import (
 	"strings"
 
 	"swap.io-agent/src/blockchain"
-	"swap.io-agent/src/blockchain/ethereum/api"
+	"swap.io-agent/src/blockchain/ethereum/nodeApi"
 	"swap.io-agent/src/blockchain/journal"
 )
 
 const TransferType = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
 
 func AddSpendsFromLogsToJournal(
-	logs []api.TransactionLog,
+	logs []nodeApi.TransactionLog,
 	journal *journal.Journal,
 ) {
 	for _, value := range logs {

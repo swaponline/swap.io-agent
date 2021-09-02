@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"swap.io-agent/src/blockchain"
-	"swap.io-agent/src/blockchain/ethereum/api"
 )
 
 func (indexer *Indexer) RunScanner() {
@@ -49,11 +48,11 @@ func (indexer *Indexer) RunScanner() {
 		block, err := indexer.api.GetBlockByIndex(
 			currentBlock,
 		)
-		if err == api.NotExistBlockError {
+		if err == blockchain.ApiNotExistBlockError {
 			<-time.After(time.Millisecond * 500)
 			continue
 		}
-		if err != api.RequestSuccess {
+		if err != blockchain.ApiRequestSuccess {
 			log.Println("get block request err", err)
 			continue
 		}

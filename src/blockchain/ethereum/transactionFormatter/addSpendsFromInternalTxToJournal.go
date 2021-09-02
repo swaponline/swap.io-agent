@@ -2,12 +2,12 @@ package transactionFormatter
 
 import (
 	"swap.io-agent/src/blockchain"
-	"swap.io-agent/src/blockchain/ethereum/api"
+	"swap.io-agent/src/blockchain/ethereum/nodeApi"
 	"swap.io-agent/src/blockchain/journal"
 )
 
 func AddSpendsFromInternalTxCallsToJournal(
-	internalTxCalls []api.InteranlTransactionCall,
+	internalTxCalls []nodeApi.InteranlTransactionCall,
 	journal *journal.Journal,
 ) {
 	for _, call := range internalTxCalls {
