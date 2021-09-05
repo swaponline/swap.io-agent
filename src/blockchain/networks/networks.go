@@ -5,19 +5,19 @@ import (
 	"swap.io-agent/src/blockchain/ethereum"
 )
 
-type Network map[string]blockchain.IBlockchinApi
+type Networks map[string]blockchain.IBlockchinApi
 
-func IndexerRegister() *Network {
-	network := Network{}
+func InitializeNetworks() *Networks {
+	network := Networks{}
 	network["ethereum"] = ethereum.InitializeApi()
 
 	return &network
 }
 
-func (*Network) Start() {}
-func (*Network) Stop() error {
+func (*Networks) Start() {}
+func (*Networks) Stop() error {
 	return nil
 }
-func (*Network) Status() error {
+func (*Networks) Status() error {
 	return nil
 }

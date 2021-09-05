@@ -2,13 +2,14 @@ package transactionNotifierPipe
 
 import (
 	"log"
-	ethereum "swap.io-agent/src/blockchain/ethereum/blockchainIndexer"
+
+	"swap.io-agent/src/blockchain/indexer"
 	"swap.io-agent/src/redisStore"
 	"swap.io-agent/src/serviceRegistry"
 )
 
 func Register(reg *serviceRegistry.ServiceRegistry) {
-	var indexer *ethereum.BlockchainIndexer
+	var indexer *indexer.Indexer
 	err := reg.FetchService(&indexer)
 	if err != nil {
 		log.Panicln(err)
@@ -22,7 +23,7 @@ func Register(reg *serviceRegistry.ServiceRegistry) {
 
 	err = reg.RegisterService(
 		InitializeTransactionNotifierPipe(TransactionNotifierPipeConfig{
-			Input: indexer.NewTransactions,
+			Input:            indexer.NewTransactions,
 			SubscribersStore: subscribersStore,
 		}),
 	)

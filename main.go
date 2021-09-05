@@ -5,6 +5,7 @@ import (
 
 	"swap.io-agent/src/blockchain/ethereum/nodeApi/geth"
 	"swap.io-agent/src/blockchain/ethereum/transactionFormatter"
+	"swap.io-agent/src/blockchain/networks"
 	"swap.io-agent/src/blockchain/subscribeManager"
 	"swap.io-agent/src/blockchain/synchronizer"
 	"swap.io-agent/src/blockchain/transactionNotifierPipe"
@@ -22,7 +23,13 @@ func main() {
 
 	err := env.InitializeConfig()
 	if err != nil {
-		log.Panicln(err.Error())
+		log.Panicln(err)
+	}
+
+	networks := networks.InitializeNetworks()
+	err = registry.RegisterService(networks)
+	if err != nil {
+		log.Panicln(err)
 	}
 
 	db, err := redisStore.InitializeDB()
@@ -31,7 +38,7 @@ func main() {
 	}
 	err = registry.RegisterService(&db)
 	if err != nil {
-		log.Panicln(err.Error())
+		log.Panicln(err)
 	}
 
 	transactionStore, err := levelDbStore.InitialiseTransactionStore(
@@ -41,11 +48,11 @@ func main() {
 		},
 	)
 	if err != nil {
-		log.Panicln(err.Error())
+		log.Panicln(err)
 	}
 	err = registry.RegisterService(transactionStore)
 	if err != nil {
-		log.Panicln(err.Error())
+		log.Panicln(err)
 	}
 
 	api := geth.InitializeGeth()
@@ -53,12 +60,10 @@ func main() {
 		api,
 	)
 	if err != nil {
-		log.Panicln(err.Error())
+		log.Panicln(err)
 	}
 
 	transactionFormatter.Register(registry)
-
-	ethereum.BlockchainIndexerRegister(registry)
 
 	synchronizer.Register(registry)
 
@@ -73,7 +78,7 @@ func main() {
 	httpHandlerEntity := httpHandler.InitializeServer()
 	err = registry.RegisterService(httpHandlerEntity)
 	if err != nil {
-		log.Panicln(err.Error())
+		log.Panicln(err)
 	}
 
 	registry.StartAll()
