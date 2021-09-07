@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"swap.io-agent/src/blockchain/ethereum/nodeApi/geth"
-	"swap.io-agent/src/blockchain/ethereum/transactionFormatter"
+	"swap.io-agent/src/blockchain/handshake"
 	"swap.io-agent/src/blockchain/networks"
 	"swap.io-agent/src/blockchain/subscribeManager"
 	"swap.io-agent/src/blockchain/synchronizer"
@@ -25,6 +25,8 @@ func main() {
 	if err != nil {
 		log.Panicln(err)
 	}
+
+	handshake.Test()
 
 	networks := networks.InitializeNetworks()
 	err = registry.RegisterService(networks)
@@ -62,8 +64,6 @@ func main() {
 	if err != nil {
 		log.Panicln(err)
 	}
-
-	transactionFormatter.Register(registry)
 
 	synchronizer.Register(registry)
 

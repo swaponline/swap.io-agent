@@ -31,9 +31,9 @@ type SpendsAsset struct {
 	Network string `json:"network"`
 }
 type Spend struct {
-	Wallet string `json:"wallet"`
+	Wallet string `json:"wallet,omitempty"`
 	Value  string `json:"value"`
-	Label  string `json:"label,omitempty"`
+	Label  string `json:"label"`
 }
 type TransactionPipeData struct {
 	Subscribers []string

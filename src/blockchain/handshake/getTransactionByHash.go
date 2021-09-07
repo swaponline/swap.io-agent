@@ -1,0 +1,3 @@
+package handshake
+
+func GetTransactionByHash() {}

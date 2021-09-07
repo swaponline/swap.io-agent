@@ -6,17 +6,17 @@ import (
 )
 
 type Journal struct {
-	network string
-	buf map[string]*blockchain.SpendsInfo
-	spendsAddress  *Set.Set
+	network       string
+	buf           map[string]*blockchain.SpendsInfo
+	spendsAddress *Set.Set
 }
 
 func New(network string) *Journal {
 	set := Set.New()
 	return &Journal{
-		network: network,
+		network:       network,
 		spendsAddress: &set,
-		buf: make(map[string]*blockchain.SpendsInfo),
+		buf:           make(map[string]*blockchain.SpendsInfo),
 	}
 }
 func (j *Journal) Add(id string, spend blockchain.Spend) {
@@ -30,10 +30,10 @@ func (j *Journal) Add(id string, spend blockchain.Spend) {
 	} else {
 		j.buf[id] = &blockchain.SpendsInfo{
 			Asset: blockchain.SpendsAsset{
-				Id: id,
+				Id:      id,
 				Address: id,
 				Network: j.network,
-				Symbol: j.network + "-" + id,
+				Symbol:  j.network + "-" + id,
 			},
 			Entries: []blockchain.Spend{spend},
 		}

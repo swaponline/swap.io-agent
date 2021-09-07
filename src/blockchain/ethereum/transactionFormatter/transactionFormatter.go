@@ -107,24 +107,26 @@ func (tf *TransactionFormatter) FormatTransaction(
 		transactionJournal.Add(ETH, blockchain.Spend{
 			Wallet: blockTransaction.From,
 			Value:  `-` + blockTransaction.Value,
+			Label:  blockchain.SPEND_LABEL_TRANSFER,
 		})
 		transactionJournal.Add(ETH, blockchain.Spend{
 			Wallet: blockTransaction.From,
 			Value:  `-` + transactionFee,
-			Label:  "Transaction fee",
+			Label:  blockchain.SPEND_LABEL_FEE,
 		})
 	}
 	if len(block.Miner) > 0 {
 		transactionJournal.Add(ETH, blockchain.Spend{
 			Wallet: block.Miner,
 			Value:  transactionFee,
-			Label:  "Transaction fee",
+			Label:  blockchain.SPEND_LABEL_FEE,
 		})
 	}
 	if len(blockTransaction.To) > 0 {
 		transactionJournal.Add(ETH, blockchain.Spend{
 			Wallet: blockTransaction.To,
 			Value:  blockTransaction.Value,
+			Label:  blockchain.SPEND_LABEL_TRANSFER,
 		})
 	}
 
