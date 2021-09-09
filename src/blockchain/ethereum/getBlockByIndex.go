@@ -17,7 +17,7 @@ func (a *Api) GetBlockByIndex(index int) (*blockchain.Block, int) {
 		); err == nil {
 			block.Transactions = append(
 				block.Transactions,
-				*transaction,
+				transaction,
 			)
 		} else {
 			return nil, blockchain.ApiRequestError

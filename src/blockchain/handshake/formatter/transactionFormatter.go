@@ -1,18 +1,21 @@
 package transactionFormatter
 
 import (
+	"strconv"
+
 	"swap.io-agent/src/blockchain"
 	"swap.io-agent/src/blockchain/handshake/nodeApi"
 	"swap.io-agent/src/blockchain/handshake/nodeApi/fullNodeApi"
+	"swap.io-agent/src/blockchain/journal"
 )
 
 const HSD = "HSD"
 
 type TransactionFormatter struct {
-	api fullNodeApi.FullNodeApi
+	api *fullNodeApi.FullNodeApi
 }
 type TransactionFormatterConfig struct {
-	Api fullNodeApi.FullNodeApi
+	Api *fullNodeApi.FullNodeApi
 }
 
 func InitializeTransactionFormatter(
@@ -24,24 +27,72 @@ func InitializeTransactionFormatter(
 }
 
 func (tf *TransactionFormatter) FormatBlock(
-	block *nodeApi.Block,
+	nodeBlock *nodeApi.Block,
 ) (*blockchain.Block, error) {
-	//addressMiner, allFee, blockReward, indexRewordTxInBlockTxs := GetBlockMinderData(block)
-	return nil, nil
-}
+	block := blockchain.Block{}
+	txs := make([]*blockchain.Transaction, 0)
 
-func (tf *TransactionFormatter) FormatTransactionFromHash(
-	hash string,
-) (*blockchain.Transaction, error) {
+	rewardTx, minerAddress := tf.getRewardTx(nodeBlock)
+	txs = append(txs, rewardTx)
 
-	return nil, nil
+	for _, nodeTx := range nodeBlock.Txs {
+		tx, err := tf.FormatTransaction(
+			&nodeTx,
+			minerAddress,
+		)
+		if err != nil {
+			return nil, err
+		}
+		txs = append(txs, tx)
+	}
+
+	block.Transactions = txs
+
+	return &block, nil
 }
 func (tf *TransactionFormatter) FormatTransaction(
-	transaction *nodeApi.Transaction,
+	nodeTx *nodeApi.Transaction,
+	minerAddress string,
 ) (*blockchain.Transaction, error) {
+	// todo: add check reward tx
+	tx := blockchain.Transaction{
+		Hash: nodeTx.Hash,
+	}
 
-	return nil, nil
+	journal := journal.New(HSD)
+	AddSpendsToJournal(nodeTx, journal, minerAddress)
+
+	tx.Journal = journal.GetSpends()
+	tx.AllSpendAddresses = journal.GetSpendsAddress()
+
+	return &tx, nil
 }
-func (tf *TransactionFormatter) FormatRewordTx() {
+func (tf *TransactionFormatter) getRewardTx(
+	block *nodeApi.Block,
+) (*blockchain.Transaction, string) {
+	minerAddress, allFee, blockReward, rewardTx := GetBlockMinderData(block)
+	tx := blockchain.Transaction{
+		Hash: rewardTx.Hash,
+	}
 
+	journal := journal.New(HSD)
+	journal.Add(HSD, blockchain.Spend{
+		Wallet: minerAddress,
+		Value:  strconv.Itoa(blockReward),
+		Label:  blockchain.SPEND_LABEL_TRANSFER,
+	})
+	journal.Add(HSD, blockchain.Spend{
+		Wallet: blockchain.BLOCK_REWARD_CREATER_ADDRESS,
+		Value:  strconv.Itoa(-blockReward),
+		Label:  blockchain.SPEND_LABEL_BLOCK_REWARD,
+	})
+	journal.Add(HSD, blockchain.Spend{
+		Value: strconv.Itoa(allFee),
+		Label: blockchain.SPEND_LABEL_FEES,
+	})
+
+	tx.Journal = journal.GetSpends()
+	tx.AllSpendAddresses = journal.GetSpendsAddress()
+
+	return &tx, minerAddress
 }

@@ -1,7 +1,7 @@
 package blockchain
 
 type Block struct {
-	Transactions []Transaction
+	Transactions []*Transaction
 }
 type Transaction struct {
 	From              string       `json:"from"`

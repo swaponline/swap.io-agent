@@ -37,7 +37,6 @@ func (n FullNodeApi) GetBlockByIndex(index int) (*nodeApi.Block, int) {
 		log.Println(err)
 		return nil, blockchain.ApiParseBodyError
 	}
-	log.Printf(`%+v %v`, block.Txs[0].Inputs[0].Coin, err)
 
 	return block, blockchain.ApiRequestSuccess
 }

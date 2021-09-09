@@ -8,8 +8,8 @@ services:
       - ./blockchainIndexes:/app/blockchainIndexes
     environment:
       PORT: 3467
-      BLOCKCHAIN: ethereum
-      BLOCKCHAIN_DEFAULT_SCANNED_BLOCK: 10908648
+      BLOCKCHAIN: handshake
+      BLOCKCHAIN_DEFAULT_SCANNED_BLOCK: -1
       BLOCKCHAIN_REQUESTS_LIMIT: 5
       SECRET_TOKEN: 09f26e402586e2faa8da4c98a35f1b20d6b033c60
       REDIS_ADDR: localhost:6379
@@ -18,3 +18,5 @@ services:
       ETHERSCAN_API_KEY: sdlkjsgdkflhsdfgjhsdfkljghsdf
       ETHERSCAN_BASE_URL: https://api-ropsten.etherscan.io
       GETH_BASE_URL: http://localhost:8545
+      HANDSHAKE_BASE_URL: http://localhost:12037
+      HANDSHAKE_API_KEY: test

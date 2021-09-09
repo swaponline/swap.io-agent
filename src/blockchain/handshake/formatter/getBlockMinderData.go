@@ -8,16 +8,14 @@ func GetBlockMinderData(
 	address string,
 	allFee int,
 	blockReward int,
-	indexRewordTxInBlockTxs int,
+	rewordTx *nodeApi.Transaction,
 ) {
-	rewardTxValue := 0
-	for index, tx := range block.Txs {
+	for _, tx := range block.Txs {
 		if tx.Fee == 0 {
 			address = tx.Outputs[0].Address
-			rewardTxValue = tx.Outputs[0].Value
-			indexRewordTxInBlockTxs = index
+			rewordTx = &tx
 		}
 		allFee += tx.Fee
 	}
-	return address, allFee, rewardTxValue - allFee, indexRewordTxInBlockTxs
+	return address, allFee, rewordTx.Outputs[0].Value - allFee, rewordTx
 }

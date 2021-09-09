@@ -3,6 +3,7 @@ package networks
 import (
 	"swap.io-agent/src/blockchain"
 	"swap.io-agent/src/blockchain/ethereum"
+	"swap.io-agent/src/blockchain/handshake"
 )
 
 type Networks map[string]blockchain.IBlockchinApi
@@ -10,6 +11,7 @@ type Networks map[string]blockchain.IBlockchinApi
 func InitializeNetworks() *Networks {
 	network := Networks{}
 	network["ethereum"] = ethereum.InitializeApi()
+	network["handshake"] = handshake.InitializeApi()
 
 	return &network
 }

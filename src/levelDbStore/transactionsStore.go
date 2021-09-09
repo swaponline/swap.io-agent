@@ -33,8 +33,8 @@ var lastBlockKey = []byte("lastBlock")
 func InitialiseTransactionStore(config TransactionsStoreConfig) (*TransactionsStore, error) {
 	db, err := leveldb.OpenFile(dbDir+config.Name, nil)
 	if err != nil {
-		return nil, errors.New(
-			fmt.Sprintf("db not open %v. err - %v", dbDir+config.Name, err),
+		return nil, fmt.Errorf(
+			"db not open %v. err - %v", dbDir+config.Name, err,
 		)
 	}
 

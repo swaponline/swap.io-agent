@@ -4,7 +4,9 @@ import (
 	"log"
 
 	"swap.io-agent/src/blockchain/ethereum/nodeApi/geth"
+	"swap.io-agent/src/blockchain/ethereum/transactionFormatter"
 	"swap.io-agent/src/blockchain/handshake"
+	"swap.io-agent/src/blockchain/indexer"
 	"swap.io-agent/src/blockchain/networks"
 	"swap.io-agent/src/blockchain/subscribeManager"
 	"swap.io-agent/src/blockchain/synchronizer"
@@ -64,8 +66,19 @@ func main() {
 	if err != nil {
 		log.Panicln(err)
 	}
+	formatter := transactionFormatter.InitializeTransactionFormatter(transactionFormatter.TransactionFormatterConfig{
+		Api: api,
+	})
+	err = registry.RegisterService(
+		formatter,
+	)
+	if err != nil {
+		log.Panicln(err)
+	}
 
 	synchronizer.Register(registry)
+
+	indexer.IndexerRegister(registry)
 
 	transactionNotifierPipe.Register(registry)
 

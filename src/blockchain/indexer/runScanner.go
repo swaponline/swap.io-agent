@@ -35,7 +35,7 @@ func (indexer *Indexer) RunScanner() {
 			indexedTransactions,
 			currentBlock,
 		); err != nil; {
-			log.Println("ERROR", err)
+			log.Println("ERROR", err, indexedTransactions)
 		}
 
 		currentBlock += 1
@@ -73,7 +73,7 @@ func (indexer *Indexer) RunScanner() {
 		}
 
 		for _, transaction := range block.Transactions {
-			indexer.NewTransactions <- &transaction
+			indexer.NewTransactions <- transaction
 		}
 
 		currentBlock += 1
@@ -81,7 +81,7 @@ func (indexer *Indexer) RunScanner() {
 }
 
 func indexingTransactions(
-	transactions []blockchain.Transaction,
+	transactions []*blockchain.Transaction,
 ) map[string][]string {
 	// address -> hashTx
 	buf := make(map[string][]string)
