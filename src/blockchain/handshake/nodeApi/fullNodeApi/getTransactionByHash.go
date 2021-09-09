@@ -13,14 +13,13 @@ import (
 func (n FullNodeApi) GetTransactionByHash(hash string) (*nodeApi.Transaction, int) {
 	req, err := http.NewRequest(
 		"GET",
-		fmt.Sprintf("%v/tx/%v", n.apiKey, hash),
+		fmt.Sprintf("%v/tx/%v", n.baseUrl, hash),
 		nil,
 	)
 	if err != nil {
 		log.Println(err)
 		return nil, blockchain.ApiRequestError
 	}
-	defer req.Body.Close()
 	req.SetBasicAuth("x", n.apiKey)
 
 	resp, err := n.client.Do(req)
@@ -38,6 +37,7 @@ func (n FullNodeApi) GetTransactionByHash(hash string) (*nodeApi.Transaction, in
 		log.Println(err)
 		return nil, blockchain.ApiParseBodyError
 	}
+	log.Println(transaction)
 
 	return transaction, blockchain.ApiRequestSuccess
 }
