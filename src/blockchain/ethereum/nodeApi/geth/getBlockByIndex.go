@@ -62,7 +62,7 @@ func (e *Geth) GetBlockByIndex(index int) (*nodeApi.Block, int) {
 		if resError.Result == "" &&
 			resError.Status == "" &&
 			resError.Message == "" {
-			return nil, blockchain.ApiNotExistBlockError
+			return nil, blockchain.ApiNotExist
 		}
 		return nil, blockchain.ApiRequestError
 	}
@@ -73,7 +73,7 @@ func (e *Geth) GetBlockByIndex(index int) (*nodeApi.Block, int) {
 	}
 	if &resBody.Result == nil {
 		log.Println(string(resBodyBytes), "result = null")
-		return nil, blockchain.ApiNotExistBlockError
+		return nil, blockchain.ApiNotExist
 	}
 
 	return &resBody.Result, blockchain.ApiRequestSuccess

@@ -6,7 +6,7 @@ import (
 
 type IBlockchinApi interface {
 	GetBlockByIndex(index int) (*Block, int)
-	GetTransactionByHash(hash string) (*Transaction, error)
+	GetTransactionByHash(hash string) (*Transaction, int)
 }
 type IFormatter interface {
 	FormatTransaction(

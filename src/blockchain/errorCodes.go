@@ -2,9 +2,11 @@ package blockchain
 
 const (
 	ApiRequestSuccess = iota
-	ApiNotExistBlockError
+	ApiNotExist
 	ApiRequestLimitError
 	ApiRequestError
 	ApiParseBodyError
 	ApiParseIndexError
+
+	FnError
 )

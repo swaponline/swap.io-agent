@@ -7,10 +7,7 @@ func (a *Api) GetBlockByIndex(index int) (*blockchain.Block, int) {
 	if err != blockchain.ApiRequestSuccess {
 		return nil, err
 	}
-	block, fErr := a.formatter.FormatBlock(nodeBlock)
-	if fErr != nil {
-		return nil, blockchain.ApiParseBodyError
-	}
+	block := a.formatter.FormatBlock(nodeBlock)
 
 	return block, blockchain.ApiRequestSuccess
 }

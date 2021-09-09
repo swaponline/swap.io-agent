@@ -42,7 +42,7 @@ func (e *Etherscan) GetBlockByIndex(index int) (*nodeApi.Block, int) {
 		if resError.Result == "" &&
 			resError.Status == "" &&
 			resError.Message == "" {
-			return nil, blockchain.ApiNotExistBlockError
+			return nil, blockchain.ApiNotExist
 		}
 		return nil, blockchain.ApiRequestError
 	}
@@ -52,7 +52,7 @@ func (e *Etherscan) GetBlockByIndex(index int) (*nodeApi.Block, int) {
 		return nil, blockchain.ApiParseBodyError
 	}
 	if &resData.Result == nil {
-		return nil, blockchain.ApiNotExistBlockError
+		return nil, blockchain.ApiNotExist
 	}
 
 	return &resData.Result, blockchain.ApiRequestSuccess

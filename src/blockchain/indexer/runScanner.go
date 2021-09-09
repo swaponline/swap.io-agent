@@ -15,7 +15,7 @@ func (indexer *Indexer) RunScanner() {
 		block, err := indexer.api.GetBlockByIndex(
 			currentBlock,
 		)
-		if err == blockchain.ApiNotExistBlockError {
+		if err == blockchain.ApiNotExist {
 			break
 		}
 		if err != blockchain.ApiRequestSuccess {
@@ -48,7 +48,7 @@ func (indexer *Indexer) RunScanner() {
 		block, err := indexer.api.GetBlockByIndex(
 			currentBlock,
 		)
-		if err == blockchain.ApiNotExistBlockError {
+		if err == blockchain.ApiNotExist {
 			<-time.After(time.Millisecond * 500)
 			continue
 		}

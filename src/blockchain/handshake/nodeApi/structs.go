@@ -22,6 +22,7 @@ type Block struct {
 
 type Transaction struct {
 	Hash        string `json:"hash"`
+	Height      int    `json:"height"`
 	WitnessHash string `json:"witnessHash"`
 	Fee         int    `json:"fee"`
 	Rate        int    `json:"rate"`

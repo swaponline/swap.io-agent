@@ -28,46 +28,26 @@ func InitializeTransactionFormatter(
 
 func (tf *TransactionFormatter) FormatBlock(
 	nodeBlock *nodeApi.Block,
-) (*blockchain.Block, error) {
+) *blockchain.Block {
 	block := blockchain.Block{}
 	txs := make([]*blockchain.Transaction, 0)
 
-	rewardTx, minerAddress := tf.getRewardTx(nodeBlock)
+	rewardTx, minerAddress := tf.GetRewardTx(nodeBlock)
 	txs = append(txs, rewardTx)
 
 	for _, nodeTx := range nodeBlock.Txs {
-		tx, err := tf.FormatTransaction(
+		tx := tf.FormatTransaction(
 			&nodeTx,
 			minerAddress,
 		)
-		if err != nil {
-			return nil, err
-		}
 		txs = append(txs, tx)
 	}
 
 	block.Transactions = txs
 
-	return &block, nil
+	return &block
 }
-func (tf *TransactionFormatter) FormatTransaction(
-	nodeTx *nodeApi.Transaction,
-	minerAddress string,
-) (*blockchain.Transaction, error) {
-	// todo: add check reward tx
-	tx := blockchain.Transaction{
-		Hash: nodeTx.Hash,
-	}
-
-	journal := journal.New(HSD)
-	AddSpendsToJournal(nodeTx, journal, minerAddress)
-
-	tx.Journal = journal.GetSpends()
-	tx.AllSpendAddresses = journal.GetSpendsAddress()
-
-	return &tx, nil
-}
-func (tf *TransactionFormatter) getRewardTx(
+func (tf *TransactionFormatter) GetRewardTx(
 	block *nodeApi.Block,
 ) (*blockchain.Transaction, string) {
 	minerAddress, allFee, blockReward, rewardTx := GetBlockMinderData(block)
@@ -95,4 +75,21 @@ func (tf *TransactionFormatter) getRewardTx(
 	tx.AllSpendAddresses = journal.GetSpendsAddress()
 
 	return &tx, minerAddress
+}
+func (tf *TransactionFormatter) FormatTransaction(
+	nodeTx *nodeApi.Transaction,
+	minerAddress string,
+) *blockchain.Transaction {
+	// todo: add check reward tx
+	tx := blockchain.Transaction{
+		Hash: nodeTx.Hash,
+	}
+
+	journal := journal.New(HSD)
+	AddSpendsToJournal(nodeTx, journal, minerAddress)
+
+	tx.Journal = journal.GetSpends()
+	tx.AllSpendAddresses = journal.GetSpendsAddress()
+
+	return &tx
 }

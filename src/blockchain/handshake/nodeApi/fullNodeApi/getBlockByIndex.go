@@ -24,7 +24,7 @@ func (n FullNodeApi) GetBlockByIndex(index int) (*nodeApi.Block, int) {
 
 	resp, err := n.client.Do(req)
 	if resp.StatusCode == http.StatusNotFound {
-		return nil, blockchain.ApiNotExistBlockError
+		return nil, blockchain.ApiNotExist
 	}
 	if err != nil {
 		log.Println(err)

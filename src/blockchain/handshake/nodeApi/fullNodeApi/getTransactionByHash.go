@@ -10,7 +10,7 @@ import (
 	"swap.io-agent/src/blockchain/handshake/nodeApi"
 )
 
-func (n FullNodeApi) GetTransactionByHash(hash int) (*nodeApi.Transaction, int) {
+func (n FullNodeApi) GetTransactionByHash(hash string) (*nodeApi.Transaction, int) {
 	req, err := http.NewRequest(
 		"GET",
 		fmt.Sprintf("%v/tx/%v", n.apiKey, hash),
@@ -24,6 +24,9 @@ func (n FullNodeApi) GetTransactionByHash(hash int) (*nodeApi.Transaction, int) 
 	req.SetBasicAuth("x", n.apiKey)
 
 	resp, err := n.client.Do(req)
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, blockchain.ApiNotExist
+	}
 	if err != nil {
 		log.Println(err)
 		return nil, blockchain.ApiRequestError
