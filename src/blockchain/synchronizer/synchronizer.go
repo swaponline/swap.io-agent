@@ -2,29 +2,32 @@ package synchronizer
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"sync"
 	"time"
 
 	"swap.io-agent/src/blockchain"
-	"swap.io-agent/src/common/Set"
 	"swap.io-agent/src/common/functions"
 	"swap.io-agent/src/env"
 	"swap.io-agent/src/levelDbStore"
 )
 
 type Synchronizer struct {
-	formatter          blockchain.IFormatter
-	store              levelDbStore.ITransactionsStore
-	sendedTransactions map[string]Set.Set
+	Api       blockchain.IBlockchinApi
+	formatter blockchain.IFormatter
+	store     levelDbStore.ITransactionsStore
+	//sendedTransactions map[string]Set.Set
 }
 type SynchronizerConfig struct {
+	Api       blockchain.IBlockchinApi
 	Formatter blockchain.IFormatter
 	Store     levelDbStore.ITransactionsStore
 }
 
 func InitialiseSynchronizer(config SynchronizerConfig) *Synchronizer {
 	return &Synchronizer{
+		Api:       config.Api,
 		formatter: config.Formatter,
 		store:     config.Store,
 	}
@@ -53,14 +56,13 @@ func (s *Synchronizer) GetCursorData(
 
 	txs := make([]*blockchain.Transaction, 0)
 	for _, hash := range cursorHashes.Hashes {
-		log.Println(hash)
-		tx, err := s.formatter.FormatTransactionFromHash(hash)
-		log.Println(err)
-		if err != nil {
-			return nil, err
+		tx, err := s.Api.GetTransactionByHash(hash)
+		if err != blockchain.ApiRequestSuccess {
+			return nil, fmt.Errorf("err - %v", err)
 		}
 		txs = append(txs, tx)
 	}
+	log.Println(cursor)
 
 	return &blockchain.CursorTransactions{
 		Cursor:       cursor,
@@ -107,10 +109,10 @@ func (s *Synchronizer) SynchronizeAddress(
 	return transactions, nil
 }
 
-func (_ *Synchronizer) Start() {}
-func (_ *Synchronizer) Stop() error {
+func (*Synchronizer) Start() {}
+func (*Synchronizer) Stop() error {
 	return nil
 }
-func (_ *Synchronizer) Status() error {
+func (*Synchronizer) Status() error {
 	return nil
 }

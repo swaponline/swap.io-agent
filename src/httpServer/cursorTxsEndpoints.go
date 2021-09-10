@@ -19,6 +19,7 @@ func (server *HttpServer) InitializeCursorTxsEndoints() {
 				return
 			}
 
+			log.Printf("get cursor address %v", address)
 			cursorData, err := server.synhronizer.GetAddressFirstCursorData(
 				address,
 			)
