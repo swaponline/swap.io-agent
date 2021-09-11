@@ -66,10 +66,13 @@ func (tf *TransactionFormatter) GetRewardTx(
 		Value:  strconv.Itoa(-blockReward),
 		Label:  blockchain.SPEND_LABEL_BLOCK_REWARD,
 	})
-	journal.Add(HSD, blockchain.Spend{
-		Value: strconv.Itoa(allFee),
-		Label: blockchain.SPEND_LABEL_FEES,
-	})
+	if allFee > 0 {
+		journal.Add(HSD, blockchain.Spend{
+			Wallet: minerAddress,
+			Value:  strconv.Itoa(allFee),
+			Label:  blockchain.SPEND_LABEL_FEES,
+		})
+	}
 
 	tx.Journal = journal.GetSpends()
 	tx.AllSpendAddresses = journal.GetSpendsAddress()

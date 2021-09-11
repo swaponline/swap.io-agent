@@ -42,7 +42,7 @@ func (j *Journal) Add(id string, spend blockchain.Spend) {
 	}
 }
 func (j *Journal) GetSpends() []blockchain.SpendsInfo {
-	spends := make([]blockchain.SpendsInfo, len(j.buf))
+	spends := make([]blockchain.SpendsInfo, 0)
 	for _, spendsInfo := range j.buf {
 		spends = append(spends, *spendsInfo)
 	}

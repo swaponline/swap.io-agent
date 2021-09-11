@@ -30,9 +30,11 @@ func (server *HttpServer) InitializeCursorTxsEndoints() {
 			}
 			if data, err := json.Marshal(cursorData); err == nil {
 				rw.Write(data)
+				return
 			} else {
 				log.Println(err)
 			}
+
 			rw.WriteHeader(http.StatusInternalServerError)
 		},
 	)

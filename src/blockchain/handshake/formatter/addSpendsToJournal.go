@@ -55,10 +55,12 @@ func AddSpendsToJournal(
 		}
 	}
 	for _, output := range tx.Outputs {
-		journal.Add(HSD, blockchain.Spend{
-			Wallet: output.Address,
-			Value:  strconv.Itoa(output.Value),
-			Label:  blockchain.SPEND_LABEL_TRANSFER,
-		})
+		if output.Value > 0 {
+			journal.Add(HSD, blockchain.Spend{
+				Wallet: output.Address,
+				Value:  strconv.Itoa(output.Value),
+				Label:  blockchain.SPEND_LABEL_TRANSFER,
+			})
+		}
 	}
 }

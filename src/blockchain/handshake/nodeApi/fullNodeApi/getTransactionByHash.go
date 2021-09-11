@@ -37,7 +37,6 @@ func (n FullNodeApi) GetTransactionByHash(hash string) (*nodeApi.Transaction, in
 		log.Println(err)
 		return nil, blockchain.ApiParseBodyError
 	}
-	log.Println(transaction)
 
 	return transaction, blockchain.ApiRequestSuccess
 }
