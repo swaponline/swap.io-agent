@@ -18,10 +18,10 @@ type IFormatter interface {
 type ISynchronizer interface {
 	GetAddressFirstCursorData(
 		address string,
-	) (*CursorTransactions, error)
+	) (*CursorTransactions, int)
 	GetCursorData(
 		cursor string,
-	) (*CursorTransactions, error)
+	) (*CursorTransactions, int)
 }
 type ISubscribeManager interface {
 	SubscribeUserToAddress(

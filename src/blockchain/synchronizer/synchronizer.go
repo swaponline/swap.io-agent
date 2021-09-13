@@ -1,7 +1,6 @@
 package synchronizer
 
 import (
-	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -34,28 +33,29 @@ func InitialiseSynchronizer(config SynchronizerConfig) *Synchronizer {
 
 func (s *Synchronizer) GetAddressFirstCursorData(
 	address string,
-) (*blockchain.CursorTransactions, error) {
+) (*blockchain.CursorTransactions, int) {
 	cursor, err := s.store.GetCursorFromAddress(address)
 	if err != nil {
-		return nil, err
+		log.Println(err)
+		return nil, blockchain.ApiParseBodyError
 	}
 
 	return s.GetCursorData(cursor)
 }
 func (s *Synchronizer) GetCursorData(
 	cursor string,
-) (*blockchain.CursorTransactions, error) {
+) (*blockchain.CursorTransactions, int) {
 	cursorHashes, err := s.store.GetCursorTransactionHashes(cursor)
 	if err != nil {
 		log.Println(err)
-		return nil, err
+		return nil, blockchain.ApiParseBodyError
 	}
 
 	txs := make([]*blockchain.Transaction, 0)
 	for _, hash := range cursorHashes.Hashes {
 		tx, err := s.Api.GetTransactionByHash(hash)
 		if err != blockchain.ApiRequestSuccess {
-			return nil, fmt.Errorf("err - %v", err)
+			return nil, err
 		}
 		txs = append(txs, tx)
 	}
@@ -64,7 +64,7 @@ func (s *Synchronizer) GetCursorData(
 		Cursor:       cursor,
 		NextCursor:   cursorHashes.NextCursor,
 		Transactions: txs,
-	}, nil
+	}, blockchain.ApiRequestSuccess
 }
 func (s *Synchronizer) SynchronizeAddress(
 	userId string,

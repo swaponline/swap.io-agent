@@ -23,6 +23,9 @@ func (n FullNodeApi) GetTransactionByHash(hash string) (*nodeApi.Transaction, in
 	req.SetBasicAuth("x", n.apiKey)
 
 	resp, err := n.client.Do(req)
+	if resp == nil {
+		return nil, blockchain.ApiRequestError
+	}
 	if resp.StatusCode == http.StatusNotFound {
 		return nil, blockchain.ApiNotExist
 	}

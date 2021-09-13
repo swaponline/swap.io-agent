@@ -7,6 +7,4 @@ const (
 	ApiRequestError
 	ApiParseBodyError
 	ApiParseIndexError
-
-	FnError
 )
