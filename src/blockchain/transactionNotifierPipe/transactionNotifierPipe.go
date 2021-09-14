@@ -21,8 +21,8 @@ func InitializeTransactionNotifierPipe(
 	config TransactionNotifierPipeConfig,
 ) *TransactionNotifierPipe {
 	return &TransactionNotifierPipe{
-		input: config.Input,
-		Out: make(chan *blockchain.TransactionPipeData),
+		input:            config.Input,
+		Out:              make(chan *blockchain.TransactionPipeData),
 		subscribersStore: config.SubscribersStore,
 	}
 }
@@ -30,7 +30,8 @@ func (tnp *TransactionNotifierPipe) Start() {
 	exit := false
 	for !exit {
 		select {
-			case transaction := <- tnp.input: {
+		case transaction := <-tnp.input:
+			{
 				subscribers := tnp.subscribersStore.GetSubscribersFromAddresses(
 					transaction.AllSpendAddresses,
 				)
@@ -42,7 +43,8 @@ func (tnp *TransactionNotifierPipe) Start() {
 				}
 			}
 
-			case <- tnp.stop: {
+		case <-tnp.stop:
+			{
 				exit = true
 			}
 		}

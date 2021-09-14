@@ -82,11 +82,12 @@ func InitializeServer(config Config) *SocketServer {
 				log.Println("err", err)
 				continue
 			}
+			transactionsStr := string(transactionsJson)
 			for _, userId := range transactionInfo.Subscribers {
 				if connection, ok := connections.Load(userId); ok && connection != nil {
 					connection.(socketio.Conn).Emit(
 						"newTransaction",
-						transactionsJson,
+						transactionsStr,
 					)
 				}
 			}
@@ -103,10 +104,10 @@ func InitializeServer(config Config) *SocketServer {
 	return &socketServer
 }
 
-func (_ *SocketServer) Start() {}
+func (*SocketServer) Start() {}
 func (socketServer *SocketServer) Stop() error {
 	return socketServer.io.Close()
 }
-func (_ *SocketServer) Status() error {
+func (*SocketServer) Status() error {
 	return nil
 }

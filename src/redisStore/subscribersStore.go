@@ -2,19 +2,20 @@ package redisStore
 
 import (
 	"context"
+
 	"swap.io-agent/src/common/Set"
 )
 
 var ctx = context.Background()
 
 func (db *RedisDb) GetSubscribersFromAddresses(addresses []string) []string {
-	uniqueUsers := Set.New()
+	subscribers := Set.New()
 	for _, address := range addresses {
-		uniqueUsers.Adds(
+		subscribers.Adds(
 			db.GetAddressSubscribers(address),
 		)
 	}
-	return uniqueUsers.Keys()
+	return subscribers.Keys()
 }
 func (db *RedisDb) GetAddressSubscribers(address string) []string {
 	return db.client.SMembers(ctx, address).Val()

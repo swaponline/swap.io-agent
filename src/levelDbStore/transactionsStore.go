@@ -178,11 +178,11 @@ func txHashAndBlockIndexToStoreData(
 func storeDataToTxHashAndBlockIndex(storeData string) (string, int, error) {
 	hashTxAndBlockIndex := strings.Split(storeData, "|")
 	if len(hashTxAndBlockIndex) != 2 || len(hashTxAndBlockIndex[0]) == 0 {
-		return "", 0, fmt.Errorf("inccorrect storeData - %v", storeData)
+		return "", 0, fmt.Errorf("inccorrect storeData - `%v`", storeData)
 	}
 	blockIndex, err := strconv.Atoi(hashTxAndBlockIndex[1])
 	if err != nil {
-		return "", 0, fmt.Errorf("inccorrect storeData - %v", storeData)
+		return "", 0, fmt.Errorf("inccorrect storeData - `%v`", storeData)
 	}
 	return hashTxAndBlockIndex[0], blockIndex, nil
 }
