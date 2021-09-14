@@ -141,18 +141,6 @@ func (tf *TransactionFormatter) FormatTransaction(
 
 	transaction := blockchain.Transaction{
 		Hash:              blockTransaction.Hash,
-		From:              blockTransaction.From,
-		To:                blockTransaction.To,
-		Gas:               blockTransaction.Gas,
-		GasPrice:          blockTransaction.GasPrice,
-		GasUsed:           transactionLogs.GasUsed,
-		Value:             blockTransaction.Value,
-		Timestamp:         block.Timestamp,
-		TransactionIndex:  blockTransaction.TransactionIndex,
-		BlockHash:         blockTransaction.BlockHash,
-		BlockNumber:       blockTransaction.BlockNumber,
-		BlockMiner:        block.Miner,
-		Nonce:             blockTransaction.Nonce,
 		AllSpendAddresses: transactionJournal.GetSpendsAddress(),
 		Journal:           transactionJournal.GetSpends(),
 	}
