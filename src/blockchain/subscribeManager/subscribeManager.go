@@ -22,10 +22,10 @@ func (sm *SubscribeManager) SubscribeUserToAddress(
 	userId string,
 	address string,
 ) error {
-	return sm.subscribersStore.SubscribeUserToAddress(userId, address)
+	return sm.subscribersStore.AddSubscription(userId, address)
 }
 func (sm *SubscribeManager) ClearAllUserSubscriptions(userId string) error {
-	return sm.subscribersStore.ClearAllUserSubscriptions(userId)
+	return sm.subscribersStore.RemoveSubscriptions(userId)
 }
 
 func (sm *SubscribeManager) Start() {}

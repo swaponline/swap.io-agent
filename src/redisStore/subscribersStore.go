@@ -8,6 +8,7 @@ import (
 
 var ctx = context.Background()
 
+// todo: return data, err
 func (db *RedisDb) GetSubscribersFromAddresses(addresses []string) []string {
 	subscribers := Set.New()
 	for _, address := range addresses {
@@ -17,10 +18,13 @@ func (db *RedisDb) GetSubscribersFromAddresses(addresses []string) []string {
 	}
 	return subscribers.Keys()
 }
+
+// todo: return data, err
 func (db *RedisDb) GetAddressSubscribers(address string) []string {
 	return db.client.SMembers(ctx, address).Val()
 }
-func (db *RedisDb) SubscribeUserToAddress(userId string, address string) error {
+
+func (db *RedisDb) AddSubscription(userId string, address string) error {
 	isAddUserAddress := db.client.SAdd(ctx, userId, address).Err()
 	if isAddUserAddress != nil {
 		return isAddUserAddress
@@ -34,13 +38,22 @@ func (db *RedisDb) SubscribeUserToAddress(userId string, address string) error {
 
 	return nil
 }
-func (db *RedisDb) ClearAllUserSubscriptions(userId string) error {
+func (db *RedisDb) RemoveSubscription(userId string, address string) error {
+	err := db.client.SRem(ctx, address, userId).Err()
+	if err != nil {
+		return err
+	}
+	err = db.client.SRem(ctx, userId, address).Err()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+func (db *RedisDb) RemoveSubscriptions(userId string) error {
 	subscriptions := db.client.SMembers(ctx, userId).Val()
 	for _, address := range subscriptions {
-		err := db.client.SRem(ctx, address, userId).Err()
-		if err != nil {
-			return err
-		}
+		db.RemoveSubscription(userId, address)
 	}
 	return nil
 }

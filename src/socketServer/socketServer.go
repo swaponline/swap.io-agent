@@ -45,7 +45,7 @@ func InitializeServer(config Config) *SocketServer {
 	socketServer.io.OnEvent("/", "subscribe", func(s socketio.Conn, payload SubscribeEventPayload) string {
 		userId := s.Context().(string)
 		//endTime := int(time.Now().Unix())
-		err := config.subscribeManager.SubscribeUserToAddress(
+		err := config.subscribeManager.AddSubscription(
 			userId,
 			payload.Address,
 		)
@@ -63,7 +63,7 @@ func InitializeServer(config Config) *SocketServer {
 	socketServer.io.OnDisconnect("/", func(s socketio.Conn, reason string) {
 		userId := s.Context()
 		connections.Delete(userId)
-		err := config.subscribeManager.ClearAllUserSubscriptions(userId.(string))
+		err := config.subscribeManager.RemoveSubscriptions(userId.(string))
 		if err != nil {
 			log.Println(
 				"err",

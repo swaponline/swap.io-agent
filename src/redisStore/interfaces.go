@@ -2,6 +2,7 @@ package redisStore
 
 type ISubscribersStore interface {
 	GetSubscribersFromAddresses(addresses []string) []string
-	SubscribeUserToAddress(userId string, address string) error
-	ClearAllUserSubscriptions(userId string) error
+	AddSubscription(userId string, address string) error
+	RemoveSubscription(userId string, address string) error
+	RemoveSubscriptions(userId string) error
 }

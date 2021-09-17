@@ -24,11 +24,11 @@ type ISynchronizer interface {
 	) (*CursorTransactions, int)
 }
 type ISubscribeManager interface {
-	SubscribeUserToAddress(
+	AddSubscription(
 		userId string,
 		address string,
 	) error
-	ClearAllUserSubscriptions(
+	RemoveSubscriptions(
 		userId string,
 	) error
 }

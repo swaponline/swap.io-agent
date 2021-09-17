@@ -8,7 +8,7 @@ import (
 const storeNameTest = "testWrite"
 
 func clearTestAffect() {
-	os.RemoveAll(dbDir)
+	os.RemoveAll(transactionsStoreDbDir)
 }
 
 func TestWriteTransactionStore(t *testing.T) {

@@ -26,15 +26,15 @@ type TransactionsStoreConfig struct {
 	DefaultScannedBlocks int
 }
 
-const dbDir = "./blockchainIndexes/"
+const transactionsStoreDbDir = "./blockchainIndexes/"
 
 var lastBlockKey = []byte("lastBlock")
 
 func InitialiseTransactionStore(config TransactionsStoreConfig) (*TransactionsStore, error) {
-	db, err := leveldb.OpenFile(dbDir+config.Name, nil)
+	db, err := leveldb.OpenFile(transactionsStoreDbDir+config.Name, nil)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"db not open %v. err - %v", dbDir+config.Name, err,
+			"db not open %v. err - %v", transactionsStoreDbDir+config.Name, err,
 		)
 	}
 
