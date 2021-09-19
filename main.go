@@ -8,7 +8,6 @@ import (
 	"swap.io-agent/src/blockchain/handshake"
 	"swap.io-agent/src/blockchain/indexer"
 	"swap.io-agent/src/blockchain/networks"
-	"swap.io-agent/src/blockchain/subscribeManager"
 	"swap.io-agent/src/blockchain/synchronizer"
 	"swap.io-agent/src/blockchain/transactionNotifierPipe"
 	"swap.io-agent/src/env"
@@ -18,6 +17,7 @@ import (
 	"swap.io-agent/src/redisStore"
 	"swap.io-agent/src/serviceRegistry"
 	"swap.io-agent/src/socketServer"
+	"swap.io-agent/src/subscribersManager"
 )
 
 func main() {
@@ -36,11 +36,20 @@ func main() {
 		log.Panicln(err)
 	}
 
-	db, err := redisStore.InitializeDB()
+	subscribersStoreMemory, err := redisStore.InitializeDB()
 	if err != nil {
 		log.Panicf("redisStore not initialize, err: %v", err)
 	}
-	err = registry.RegisterService(&db)
+	err = registry.RegisterService(&subscribersStoreMemory)
+	if err != nil {
+		log.Panicln(err)
+	}
+
+	subscribersStoreDisk, err := levelDbStore.InitialiseSubscriberStore()
+	if err != nil {
+		log.Panicf("Subscribers store not initialize, err: %v", err)
+	}
+	err = registry.RegisterService(subscribersStoreDisk)
 	if err != nil {
 		log.Panicln(err)
 	}
@@ -80,9 +89,9 @@ func main() {
 
 	indexer.IndexerRegister(registry)
 
-	transactionNotifierPipe.Register(registry)
+	subscribersManager.Register(registry)
 
-	subscribeManager.Register(registry)
+	transactionNotifierPipe.Register(registry)
 
 	socketServer.Register(registry)
 

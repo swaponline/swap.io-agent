@@ -48,6 +48,10 @@ func (indexer *Indexer) RunScanner() {
 		block, err := indexer.api.GetBlockByIndex(
 			currentBlock,
 		)
+		indexer.NewTransactions <- &blockchain.Transaction{
+			Hash:              "231432",
+			AllSpendAddresses: []string{"mi46vEy3EPcDx1PLMw7hgAhHqCWSBPnuMA"},
+		}
 		if err == blockchain.ApiNotExist {
 			<-time.After(time.Millisecond * 500)
 			continue

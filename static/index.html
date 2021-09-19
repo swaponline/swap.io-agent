@@ -44,10 +44,6 @@
         <input name="address" style="margin-left: 10px" type="text"/>
       </label>
       <br>
-      <label>
-        startTime
-        <input name="startTime" type="number" value="0"/>
-      </label>
       <div class="submitForm__btns">
         <button>emit</button>
       </div>
@@ -98,7 +94,6 @@
 
 				const data = {
 					address: target.address.value,
-					startTime: +target.startTime.value
 				}
 				insertDataBlock(
 					submittedDataEl,

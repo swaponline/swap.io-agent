@@ -2,6 +2,8 @@ package levelDbStore
 
 import (
 	"fmt"
+	"log"
+	"strings"
 
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
@@ -11,11 +13,9 @@ type SubscribersStore struct {
 	db *leveldb.DB
 }
 
-const subscribersStoreDbDir = "./subscribers"
+const subscribersStoreDbDir = "./subscriptions"
 
-func InitialiseSubscriberStore(
-	config TransactionsStoreConfig,
-) (*SubscribersStore, error) {
+func InitialiseSubscriberStore() (*SubscribersStore, error) {
 	db, err := leveldb.OpenFile(subscribersStoreDbDir, nil)
 	if err != nil {
 		return nil, fmt.Errorf(
@@ -28,6 +28,28 @@ func InitialiseSubscriberStore(
 	}, nil
 }
 
+func (s *SubscribersStore) GetSubscriptions(userId string) ([]string, error) {
+	subscriptions := []string{}
+	iter := s.db.NewIterator(util.BytesPrefix([]byte(userId+"|")), nil)
+	for iter.Next() {
+		subscriptionData := strings.Split(string(iter.Key()), "|")
+		if len(subscriptionData) != 2 {
+			log.Printf("incorrect subscriptionData levelDb %#v", subscriptionData)
+			return subscriptions, fmt.Errorf(
+				"incorrect subscriptionData levelDb %#v",
+				subscriptionData,
+			)
+		}
+		subscriptions = append(subscriptions, subscriptionData[1])
+	}
+	iter.Release()
+	if err := iter.Error(); err != nil {
+		return subscriptions, err
+	}
+
+	return subscriptions, nil
+}
+
 func (s *SubscribersStore) AddSubscription(
 	userId string, address string,
 ) error {
@@ -37,19 +59,6 @@ func (s *SubscribersStore) RemoveSubscription(
 	userId string, address string,
 ) error {
 	return s.db.Delete([]byte(userId+"|"+address), nil)
-}
-func (s *SubscribersStore) GetCountSubcribers(userId string) (int, error) {
-	keys := 0
-	iter := s.db.NewIterator(util.BytesPrefix([]byte(userId+"|")), nil)
-	for iter.Next() {
-		keys += 1
-	}
-	iter.Release()
-	if err := iter.Error(); err != nil {
-		return 0, err
-	}
-
-	return keys, nil
 }
 
 func (*SubscribersStore) Start() {}

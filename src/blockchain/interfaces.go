@@ -23,12 +23,3 @@ type ISynchronizer interface {
 		cursor string,
 	) (*CursorTransactions, int)
 }
-type ISubscribeManager interface {
-	AddSubscription(
-		userId string,
-		address string,
-	) error
-	RemoveSubscriptions(
-		userId string,
-	) error
-}

@@ -3,34 +3,26 @@ package socketServer
 import (
 	"log"
 
-	"swap.io-agent/src/blockchain/synchronizer"
 	"swap.io-agent/src/blockchain/transactionNotifierPipe"
-	"swap.io-agent/src/redisStore"
 	"swap.io-agent/src/serviceRegistry"
+	"swap.io-agent/src/subscribersManager"
 )
 
 func Register(reg *serviceRegistry.ServiceRegistry) {
+	var subscribeManager *subscribersManager.SubscribesManager
+	err := reg.FetchService(&subscribeManager)
+	if err != nil {
+		log.Panicln(err)
+	}
+
 	var notifyTransactionPipe *transactionNotifierPipe.TransactionNotifierPipe
-	err := reg.FetchService(&notifyTransactionPipe)
-	if err != nil {
-		log.Panicln(err)
-	}
-
-	var synchroniser *synchronizer.Synchronizer
-	err = reg.FetchService(&synchroniser)
-	if err != nil {
-		log.Panicln(err)
-	}
-
-	var subscribeManager *redisStore.RedisDb
-	err = reg.FetchService(&subscribeManager)
+	err = reg.FetchService(&notifyTransactionPipe)
 	if err != nil {
 		log.Panicln(err)
 	}
 
 	err = reg.RegisterService(
 		InitializeServer(Config{
-			synchronizer:     synchroniser,
 			subscribeManager: subscribeManager,
 			onNotifyUsers:    notifyTransactionPipe.Out,
 		}),

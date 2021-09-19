@@ -10,11 +10,11 @@ import (
 	"github.com/googollee/go-socket.io/engineio"
 	"swap.io-agent/src/auth"
 	"swap.io-agent/src/blockchain"
+	"swap.io-agent/src/subscribersManager"
 )
 
 type Config struct {
-	synchronizer     blockchain.ISynchronizer
-	subscribeManager blockchain.ISubscribeManager
+	subscribeManager *subscribersManager.SubscribesManager
 	onNotifyUsers    chan *blockchain.TransactionPipeData
 }
 
@@ -38,16 +38,25 @@ func InitializeServer(config Config) *SocketServer {
 		)
 		connections.Store(userId, s)
 		s.SetContext(userId)
+		err := config.subscribeManager.LoadSubscriptions(
+			userId,
+		)
+		if err != nil {
+			return err
+		}
 		log.Printf("connect: %v", userId)
 
 		return nil
 	})
-	socketServer.io.OnEvent("/", "subscribe", func(s socketio.Conn, payload SubscribeEventPayload) string {
+	socketServer.io.OnEvent("/", "subscribe", func(
+		s socketio.Conn,
+		payload SubscribeEventPayload,
+	) string {
 		userId := s.Context().(string)
-		//endTime := int(time.Now().Unix())
-		err := config.subscribeManager.AddSubscription(
+		err := config.subscribeManager.SubscribeUserToAddress(
 			userId,
 			payload.Address,
+			true,
 		)
 		if err != nil {
 			log.Println(
@@ -57,13 +66,13 @@ func InitializeServer(config Config) *SocketServer {
 			)
 			return "error"
 		}
-		log.Println(payload)
+		log.Printf(`%#v`, payload)
 		return ""
 	})
 	socketServer.io.OnDisconnect("/", func(s socketio.Conn, reason string) {
 		userId := s.Context()
 		connections.Delete(userId)
-		err := config.subscribeManager.RemoveSubscriptions(userId.(string))
+		err := config.subscribeManager.ClearAllUserSubscriptions(userId.(string))
 		if err != nil {
 			log.Println(
 				"err",

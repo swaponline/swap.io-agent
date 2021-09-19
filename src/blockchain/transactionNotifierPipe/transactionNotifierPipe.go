@@ -2,19 +2,19 @@ package transactionNotifierPipe
 
 import (
 	"swap.io-agent/src/blockchain"
-	"swap.io-agent/src/redisStore"
+	"swap.io-agent/src/subscribersManager"
 )
 
 type TransactionNotifierPipe struct {
 	input            chan *blockchain.Transaction
 	Out              chan *blockchain.TransactionPipeData
-	subscribersStore redisStore.ISubscribersStore
+	subscribersStore *subscribersManager.SubscribesManager
 	stop             chan bool
 }
 
 type TransactionNotifierPipeConfig struct {
-	Input            chan *blockchain.Transaction
-	SubscribersStore redisStore.ISubscribersStore
+	Input              chan *blockchain.Transaction
+	SubscribersManager *subscribersManager.SubscribesManager
 }
 
 func InitializeTransactionNotifierPipe(
@@ -23,7 +23,7 @@ func InitializeTransactionNotifierPipe(
 	return &TransactionNotifierPipe{
 		input:            config.Input,
 		Out:              make(chan *blockchain.TransactionPipeData),
-		subscribersStore: config.SubscribersStore,
+		subscribersStore: config.SubscribersManager,
 	}
 }
 func (tnp *TransactionNotifierPipe) Start() {

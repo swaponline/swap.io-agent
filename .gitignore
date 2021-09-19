@@ -7,5 +7,6 @@
 deploy.sh
 
 /blockchainIndexes
+/subscriptions
 swap.io-agent
 swap.io-agent-image.tar

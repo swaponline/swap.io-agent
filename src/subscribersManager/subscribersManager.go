@@ -1,18 +1,20 @@
-package main
+package subscribersManager
 
 import (
+	"log"
+
 	"swap.io-agent/src/levelDbStore"
 	"swap.io-agent/src/redisStore"
 )
 
 type SubscribesManager struct {
 	memoryStore redisStore.ISubscribersStore
-	diskStore   levelDbStore.SubscribersStore
+	diskStore   *levelDbStore.SubscribersStore
 }
 
 type SubscribesManagerConfig struct {
 	MemoryStore redisStore.ISubscribersStore
-	DiskStore   levelDbStore.SubscribersStore
+	DiskStore   *levelDbStore.SubscribersStore
 }
 
 func InitialiseSubscribersStore(config SubscribesManagerConfig) *SubscribesManager {
@@ -22,10 +24,21 @@ func InitialiseSubscribersStore(config SubscribesManagerConfig) *SubscribesManag
 	}
 }
 
-func (s *SubscribesManager) GetCountSubcribers(
+func (s *SubscribesManager) LoadSubscriptions(
 	userId string,
-) (int, error) {
-	return s.diskStore.GetCountSubcribers(userId)
+) error {
+	subscriptions, err := s.diskStore.GetSubscriptions(userId)
+	if err != nil {
+		return err
+	}
+	log.Println(subscriptions)
+	for _, subscription := range subscriptions {
+		err := s.SubscribeUserToAddress(userId, subscription, false)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (s *SubscribesManager) GetSubscribersFromAddresses(
@@ -35,20 +48,23 @@ func (s *SubscribesManager) GetSubscribersFromAddresses(
 }
 
 func (s *SubscribesManager) SubscribeUserToAddress(
-	userId string, address string,
+	userId string, address string, isWriteToDisk bool,
 ) error {
-	err := s.diskStore.AddSubscription(userId, address)
-	if err != nil {
-		return err
+	if isWriteToDisk {
+		err := s.diskStore.AddSubscription(userId, address)
+		if err != nil {
+			return err
+		}
 	}
+
 	return s.memoryStore.AddSubscription(userId, address)
 }
 func (s *SubscribesManager) SubscribeUserToAddresses(
-	userId string, addresses []string,
+	userId string, addresses []string, isWriteToDisk bool,
 ) int {
 	writed := 0
 	for _, address := range addresses {
-		err := s.SubscribeUserToAddress(userId, address)
+		err := s.SubscribeUserToAddress(userId, address, isWriteToDisk)
 		if err != nil {
 			return len(addresses) - writed
 		}
@@ -85,4 +101,12 @@ func (s *SubscribesManager) ClearAllUserSubscriptions(
 ) error {
 	//!!! no clear disk store
 	return s.memoryStore.RemoveSubscriptions(userId)
+}
+
+func (*SubscribesManager) Start() {}
+func (*SubscribesManager) Stop() error {
+	return nil
+}
+func (*SubscribesManager) Status() error {
+	return nil
 }
