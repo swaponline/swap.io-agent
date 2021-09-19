@@ -60,6 +60,12 @@
           <button>emit</button>
         </div>
       </form>
+      <form id="subscriptionsSizeForm">
+        <h3>subscriptions size</h3>
+        <div class="submitForm__btns">
+          <button>emit</button>
+        </div>
+      </form>
     </div>
     <div id="submittedData">
     </div>
@@ -98,10 +104,11 @@
 				})
       )
 
-			const subscribeForm   = document.querySelector('#subscribeForm')
-      const unsubscribeForm = document.querySelector('#unsubscribeForm')
-			const submittedDataEl = document.querySelector('#submittedData')
-			const acceptedDataEl  = document.querySelector('#acceptedData')
+			const subscribeForm         = document.querySelector('#subscribeForm')
+      const unsubscribeForm       = document.querySelector('#unsubscribeForm')
+      const subscriptionsSizeForm = document.querySelector('#subscriptionsSizeForm')
+			const submittedDataEl       = document.querySelector('#submittedData')
+			const acceptedDataEl        = document.querySelector('#acceptedData')
 
 			subscribeForm.addEventListener('submit', (event) => {
 				const target = event.target
@@ -114,17 +121,18 @@
           `subscribe address - ${data.address}`,
           data
         )
-        socket.emit("subscribe", data, (transactionsInfo) => {
+        socket.emit("subscribe", data, (subscribeData) => {
         	insertDataBlock(
         		acceptedDataEl,
-            `notify transactions address - ${data.address}`,
-            JSON.parse(transactionsInfo)
+            `return subscribe data for address - ${data.address}`,
+            JSON.parse(subscribeData)
           )
         })
 
 				event.preventDefault()
 			})
       unsubscribeForm.addEventListener('submit', (event) => {
+        event.preventDefault()
 				const target = event.target
 
 				const data = {
@@ -135,11 +143,28 @@
           `unsubscribe address - ${data.address}`,
           data
         )
-        socket.emit("unsubscribe", data, (transactionsInfo) => {
+        socket.emit("unsubscribe", data, (unsubscribeData) => {
         	insertDataBlock(
         		acceptedDataEl,
-            `notify unsubscribe`,
-            JSON.parse(transactionsInfo)
+            `return unsubscribe data for address - ${data.address}`,
+            JSON.parse(unsubscribeData)
+          )
+        })
+			})
+      subscriptionsSizeForm.addEventListener('submit', (event) => {
+				const target = event.target
+
+				insertDataBlock(
+					submittedDataEl,
+          `subscriptionsSize emit`,
+          {}
+        )
+        socket.emit("subscriptionsSize", "", (unsubscribeData) => {
+          console.log(unsubscribeData)
+        	insertDataBlock(
+        		acceptedDataEl,
+            `subscriptionsSize emit return`,
+            JSON.parse(unsubscribeData)
           )
         })
 

@@ -1,8 +1,6 @@
 package subscribersManager
 
 import (
-	"log"
-
 	"swap.io-agent/src/levelDbStore"
 	"swap.io-agent/src/redisStore"
 )
@@ -31,7 +29,6 @@ func (s *SubscribesManager) LoadSubscriptions(
 	if err != nil {
 		return err
 	}
-	log.Println(subscriptions)
 	for _, subscription := range subscriptions {
 		err := s.SubscribeUserToAddress(userId, subscription, false)
 		if err != nil {
@@ -39,6 +36,12 @@ func (s *SubscribesManager) LoadSubscriptions(
 		}
 	}
 	return nil
+}
+
+func (s *SubscribesManager) GetSubscriptionsSize(
+	userId string,
+) (int, error) {
+	return s.diskStore.GetSubscriptionsSize(userId)
 }
 
 func (s *SubscribesManager) GetSubscribersFromAddresses(

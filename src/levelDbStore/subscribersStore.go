@@ -49,6 +49,19 @@ func (s *SubscribersStore) GetSubscriptions(userId string) ([]string, error) {
 
 	return subscriptions, nil
 }
+func (s *SubscribersStore) GetSubscriptionsSize(userId string) (int, error) {
+	subscriptionsSize := 0
+	iter := s.db.NewIterator(util.BytesPrefix([]byte(userId+"|")), nil)
+	for iter.Next() {
+		subscriptionsSize += 1
+	}
+	iter.Release()
+	if err := iter.Error(); err != nil {
+		return 0, err
+	}
+
+	return subscriptionsSize, nil
+}
 
 func (s *SubscribersStore) AddSubscription(
 	userId string, address string,

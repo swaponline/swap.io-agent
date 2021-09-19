@@ -2,6 +2,7 @@ package socketServer
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"sync"
@@ -87,7 +88,25 @@ func InitializeServer(config Config) *SocketServer {
 			return "error"
 		}
 		log.Printf(`%#v`, payload)
-		return ""
+		return "{}"
+	})
+	socketServer.io.OnEvent("/", "subscriptionsSize", func(
+		s socketio.Conn,
+	) string {
+		userId := s.Context().(string)
+		size, err := config.subscribeManager.GetSubscriptionsSize(
+			userId,
+		)
+		if err != nil {
+			log.Println(
+				"err",
+				err, "then unsubscribe user",
+				"user:", s.Context(),
+			)
+			return "error"
+		}
+
+		return fmt.Sprintf(`{"size": %v}`, size)
 	})
 	socketServer.io.OnDisconnect("/", func(s socketio.Conn, reason string) {
 		userId := s.Context()
