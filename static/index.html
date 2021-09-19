@@ -37,17 +37,30 @@
 </style>
 <div>
   <div class="content">
-    <form id="submitForm">
-      <h3>subscribe to address</h3>
-      <label>
-        address
-        <input name="address" style="margin-left: 10px" type="text"/>
-      </label>
-      <br>
-      <div class="submitForm__btns">
-        <button>emit</button>
-      </div>
-    </form>
+    <div>
+      <form id="subscribeForm">
+        <h3>subscribe to address</h3>
+        <label>
+          address
+          <input name="address" style="margin-left: 10px" type="text"/>
+        </label>
+        <br>
+        <div class="submitForm__btns">
+          <button>emit</button>
+        </div>
+      </form>
+      <form id="unsubscribeForm">
+        <h3>unsubscribe to address</h3>
+        <label>
+          address
+          <input name="address" style="margin-left: 10px" type="text"/>
+        </label>
+        <br>
+        <div class="submitForm__btns">
+          <button>emit</button>
+        </div>
+      </form>
+    </div>
     <div id="submittedData">
     </div>
     <div id="acceptedData">
@@ -85,11 +98,12 @@
 				})
       )
 
-			const submitFormEl    = document.querySelector('#submitForm')
+			const subscribeForm   = document.querySelector('#subscribeForm')
+      const unsubscribeForm = document.querySelector('#unsubscribeForm')
 			const submittedDataEl = document.querySelector('#submittedData')
 			const acceptedDataEl  = document.querySelector('#acceptedData')
 
-			submitFormEl.addEventListener('submit', (event) => {
+			subscribeForm.addEventListener('submit', (event) => {
 				const target = event.target
 
 				const data = {
@@ -103,7 +117,28 @@
         socket.emit("subscribe", data, (transactionsInfo) => {
         	insertDataBlock(
         		acceptedDataEl,
-            `synchronized transactions address - ${data.address}`,
+            `notify transactions address - ${data.address}`,
+            JSON.parse(transactionsInfo)
+          )
+        })
+
+				event.preventDefault()
+			})
+      unsubscribeForm.addEventListener('submit', (event) => {
+				const target = event.target
+
+				const data = {
+					address: target.address.value,
+				}
+				insertDataBlock(
+					submittedDataEl,
+          `unsubscribe address - ${data.address}`,
+          data
+        )
+        socket.emit("unsubscribe", data, (transactionsInfo) => {
+        	insertDataBlock(
+        		acceptedDataEl,
+            `notify unsubscribe`,
             JSON.parse(transactionsInfo)
           )
         })

@@ -69,6 +69,26 @@ func InitializeServer(config Config) *SocketServer {
 		log.Printf(`%#v`, payload)
 		return ""
 	})
+	socketServer.io.OnEvent("/", "unsubscribe", func(
+		s socketio.Conn,
+		payload SubscribeEventPayload,
+	) string {
+		userId := s.Context().(string)
+		err := config.subscribeManager.UnsubscribeUserToAddress(
+			userId,
+			payload.Address,
+		)
+		if err != nil {
+			log.Println(
+				"err",
+				err, "then unsubscribe user",
+				"user:", s.Context(),
+			)
+			return "error"
+		}
+		log.Printf(`%#v`, payload)
+		return ""
+	})
 	socketServer.io.OnDisconnect("/", func(s socketio.Conn, reason string) {
 		userId := s.Context()
 		connections.Delete(userId)
