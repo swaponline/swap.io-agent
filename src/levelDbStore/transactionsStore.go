@@ -80,7 +80,7 @@ func (ts *TransactionsStore) GetLastTransactionBlock() int {
 }
 
 func (ts *TransactionsStore) GetCursorFromAddress(address string) (string, error) {
-	cursor, err := ts.db.Get([]byte(address), nil)
+	cursor, _, err := LinkedListKeyValuesGetFirstCursor(ts.db, address)
 	if err == leveldb.ErrNotFound {
 		return "null", nil
 	}

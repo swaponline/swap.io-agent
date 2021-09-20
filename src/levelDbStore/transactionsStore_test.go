@@ -82,24 +82,24 @@ func TestWriteTransactionStore(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if cursorData.Cursor != "add1|1" {
+	if cursorData.Cursor != "add1|0" {
 		t.Error(
 			"invalid cursor", cursorData.Cursor,
-			"expected", "add1|1",
+			"expected", "add1|0",
 		)
 	}
-	if cursorData.NextCursor != "add1|0" {
+	if cursorData.NextCursor != "add1|1" {
 		t.Error(
 			"invalid next cursor", cursorData.NextCursor,
-			"expected", "add1|0",
+			"expected", "add1|1",
 		)
 	}
 	if len(cursorData.Hashes) != 2 {
 		t.Error("cursor data expected 2")
 	}
-	if cursorData.Hashes[0] != "hash5" || cursorData.Hashes[1] != "hash7" {
+	if cursorData.Hashes[0] != "hash1" || cursorData.Hashes[1] != "hash3" {
 		t.Error(
-			"incorrect cursor data, expected [hash5, hash7]",
+			"incorrect cursor data, expected [hash1, hash3]",
 			"got get ", cursorData.Hashes,
 		)
 	}
@@ -107,10 +107,10 @@ func TestWriteTransactionStore(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if cursorData1.Cursor != "add1|0" {
+	if cursorData1.Cursor != "add1|1" {
 		t.Error(
 			"invalid cursor", cursorData1.Cursor,
-			"expected", "add1|0",
+			"expected", "add1|1",
 		)
 	}
 	if cursorData1.NextCursor != "null" {
@@ -122,9 +122,9 @@ func TestWriteTransactionStore(t *testing.T) {
 	if len(cursorData1.Hashes) != 2 {
 		t.Error("cursor data expected 2")
 	}
-	if cursorData1.Hashes[0] != "hash1" || cursorData1.Hashes[1] != "hash3" {
+	if cursorData1.Hashes[0] != "hash5" || cursorData1.Hashes[1] != "hash7" {
 		t.Error(
-			"incorrect cursor data, expected [hash1, hash3]",
+			"incorrect cursor data, expected [hash5, hash7]",
 			"got get ", cursorData1.Hashes,
 		)
 	}

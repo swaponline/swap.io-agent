@@ -43,6 +43,7 @@ func InitializeServer(config Config) *SocketServer {
 			userId,
 		)
 		if err != nil {
+			log.Println(err)
 			return err
 		}
 		log.Printf("connect: %v", userId)
@@ -68,7 +69,7 @@ func InitializeServer(config Config) *SocketServer {
 			return "error"
 		}
 		log.Printf(`%#v`, payload)
-		return ""
+		return "{}"
 	})
 	socketServer.io.OnEvent("/", "unsubscribe", func(
 		s socketio.Conn,

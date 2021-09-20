@@ -35,9 +35,20 @@ func LinkedListKeyValuesGetCursorData(
 	if cursor == "null" {
 		return []string{}, "null", nil
 	}
-	_, _, err := keyToData(cursor)
+	head, current, err := keyToData(cursor)
 	if err != nil {
 		return []string{}, "null", nil
+	}
+	sizeBytes, err := db.Get([]byte(head), nil)
+	if err == leveldb.ErrNotFound {
+		return []string{}, "null", err
+	}
+	if err != nil {
+		return []string{}, "null", err
+	}
+	size, err := strconv.Atoi(string(sizeBytes))
+	if err != nil {
+		return []string{}, "null", err
 	}
 
 	data, err := db.Get([]byte(cursor), nil)
@@ -45,7 +56,7 @@ func LinkedListKeyValuesGetCursorData(
 		return []string{}, "null", err
 	}
 
-	nextCursor, err := LinkedListKeyValuesGetNextCursor(cursor)
+	nextCursor := LinkedListKeyValuesGetNextCursor(head, current, size)
 	if err != nil {
 		return []string{}, "null", nil
 	}
@@ -59,37 +70,36 @@ func LinkedListKeyValuesGetFirstCursor(
 		return "null", "null", nil
 	}
 
-	cursor, err := db.Get([]byte(head), nil)
+	sizeBytes, err := db.Get([]byte(head), nil)
 	if err == leveldb.ErrNotFound {
 		return "null", "null", nil
 	}
 	if err != nil {
 		return "null", "null", err
 	}
-
-	nextCursor, err := LinkedListKeyValuesGetNextCursor(string(cursor))
+	size, err := strconv.Atoi(string(sizeBytes))
 	if err != nil {
 		return "null", "null", err
 	}
 
-	return string(cursor), nextCursor, nil
+	nextCursor := LinkedListKeyValuesGetNextCursor(head, 0, size)
+	if err != nil {
+		return "null", "null", err
+	}
+
+	return dataToKey(head, 0), nextCursor, nil
 }
 
 func LinkedListKeyValuesGetNextCursor(
-	cursor string,
-) (string, error) {
-	if cursor == "null" {
-		return "null", nil
+	head string,
+	current int,
+	size int,
+) string {
+	if current >= size-1 {
+		return "null"
 	}
 
-	head, index, err := keyToData(cursor)
-	if err != nil {
-		return "null", err
-	}
-	if index <= 0 {
-		return "null", nil
-	}
-	return dataToKey(head, index-1), nil
+	return dataToKey(head, current+1)
 }
 
 func LinkedListKeyValuesPush(
@@ -102,7 +112,7 @@ func LinkedListKeyValuesPush(
 		return nil
 	}
 	headKey := []byte(head)
-	tailKey, err := db.Get(headKey, nil)
+	sizeBytes, err := db.Get(headKey, nil)
 	if err != nil && err != leveldb.ErrNotFound {
 		return err
 	}
@@ -110,7 +120,7 @@ func LinkedListKeyValuesPush(
 		newTail := []byte(head + `|0`)
 		batch.Put(
 			headKey,
-			newTail,
+			[]byte(`1`),
 		)
 		batch.Put(
 			newTail,
@@ -119,17 +129,17 @@ func LinkedListKeyValuesPush(
 		return nil
 	}
 
-	_, index, err := keyToData(string(tailKey))
+	size, err := strconv.Atoi(string(sizeBytes))
 	if err != nil {
 		return err
 	}
-
+	newSize := size + 1
 	newTail := []byte(
-		head + "|" + strconv.Itoa(index+1),
+		head + "|" + strconv.Itoa(size),
 	)
 	batch.Put(
 		headKey,
-		newTail,
+		[]byte(strconv.Itoa(newSize)),
 	)
 	if err != nil {
 		return err
@@ -141,6 +151,7 @@ func LinkedListKeyValuesPush(
 
 	return err
 }
+
 func LinkedListKeyValuePush(
 	db *leveldb.DB,
 	batch *leveldb.Batch,
