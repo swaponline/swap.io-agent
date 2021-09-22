@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"swap.io-agent/src/blockchain"
 )
@@ -17,7 +18,7 @@ func (server *HttpServer) InitializeCursorTxsEndoints() {
 		"/getFirstCursorTransactions",
 		func(rw http.ResponseWriter, r *http.Request) {
 			address := r.URL.Query().Get("address")
-			if len(address) == 0 {
+			if len(address) == 0 || strings.Contains(address, "|") {
 				rw.WriteHeader(http.StatusBadRequest)
 				rw.Write([]byte("invalid address"))
 				return

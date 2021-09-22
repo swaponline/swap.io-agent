@@ -79,89 +79,6 @@ func (ts *TransactionsStore) GetLastTransactionBlock() int {
 	return ts.lastBlock
 }
 
-func (ts *TransactionsStore) GetCursorFromAddress(address string) (string, error) {
-	cursor, _, err := LinkedListKeyValuesGetFirstCursor(ts.db, address)
-	if err == leveldb.ErrNotFound {
-		return "null", nil
-	}
-	if err != nil {
-		return "null", err
-	}
-
-	return string(cursor), nil
-}
-func (ts *TransactionsStore) GetCursorTransactionHashes(
-	cursor string,
-) (*CursorTransactionHashes, error) {
-	hashes := make([]string, 0)
-	cursorData, nextCursor, err := LinkedListKeyValuesGetCursorData(
-		ts.db, cursor,
-	)
-	if err != nil {
-		return nil, err
-	}
-	for _, storeData := range cursorData {
-		hashTx, _, err := storeDataToTxHashAndBlockIndex(storeData)
-		if err != nil {
-			return nil, err
-		}
-		hashes = append(hashes, hashTx)
-	}
-
-	return &CursorTransactionHashes{
-		Cursor:     cursor,
-		NextCursor: nextCursor,
-		Hashes:     hashes,
-	}, nil
-}
-func (ts *TransactionsStore) GetFirstCursorTransactionHashes(
-	address string,
-) (*CursorTransactionHashes, error) {
-	cursor, _, err := LinkedListKeyValuesGetFirstCursor(
-		ts.db, address,
-	)
-	if err != nil {
-		return nil, err
-	}
-	return ts.GetCursorTransactionHashes(cursor)
-}
-
-func (ts *TransactionsStore) GetAddressTransactionsHash(
-	address string,
-	startTime int,
-	endTime int,
-) ([]string, error) {
-	transactionsInfoBytes, err := ts.db.Get([]byte(address), nil)
-	if err != nil {
-		if err == leveldb.ErrNotFound {
-			return make([]string, 0), nil
-		}
-		return nil, err
-	}
-
-	transactionsInfo := strings.Split(
-		string(transactionsInfoBytes),
-		" ",
-	)
-	transactionsHash := make([]string, 0)
-	for _, transactionInfo := range transactionsInfo {
-		hashTimestamp := strings.Split(transactionInfo, "|")
-		if len(hashTimestamp) != 2 {
-			return nil, errors.New("not get hash|time transaction info from db")
-		}
-		timestamp, err := strconv.Atoi(hashTimestamp[1])
-		if err != nil {
-			return nil, err
-		}
-
-		if startTime <= timestamp && timestamp <= endTime {
-			transactionsHash = append(transactionsHash, hashTimestamp[0])
-		}
-	}
-
-	return transactionsHash, nil
-}
-
 func txHashAndBlockIndexToStoreData(
 	txHash string,
 	blockIndex int,
@@ -187,6 +104,52 @@ func storeDataToTxHashAndBlockIndex(storeData string) (string, int, error) {
 	return hashTxAndBlockIndex[0], blockIndex, nil
 }
 
+func (ts *TransactionsStore) GetCursorFromAddress(address string) (string, error) {
+	cursor, _, err := LinkedListKeyValuesGetFirstCursor(ts.db, address)
+	if err == leveldb.ErrNotFound {
+		return "null", nil
+	}
+	if err != nil {
+		return "null", err
+	}
+
+	return string(cursor), nil
+}
+func (ts *TransactionsStore) GetFirstCursorTransactionHashes(
+	address string,
+) (*CursorTransactionHashes, error) {
+	cursor, _, err := LinkedListKeyValuesGetFirstCursor(
+		ts.db, address,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return ts.GetCursorTransactionHashes(cursor)
+}
+func (ts *TransactionsStore) GetCursorTransactionHashes(
+	cursor string,
+) (*CursorTransactionHashes, error) {
+	hashes := make([]string, 0)
+	cursorData, nextCursor, err := LinkedListKeyValuesGetCursorData(
+		ts.db, cursor,
+	)
+	if err != nil {
+		return nil, err
+	}
+	for _, storeData := range cursorData {
+		hashTx, _, err := storeDataToTxHashAndBlockIndex(storeData)
+		if err != nil {
+			return nil, err
+		}
+		hashes = append(hashes, hashTx)
+	}
+
+	return &CursorTransactionHashes{
+		Cursor:     cursor,
+		NextCursor: nextCursor,
+		Hashes:     hashes,
+	}, nil
+}
 func (ts *TransactionsStore) WriteLastIndexedTransactions(
 	AddressHashTransactions map[string][]string,
 	indexBlock int,
