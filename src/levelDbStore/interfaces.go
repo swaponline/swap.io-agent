@@ -2,23 +2,18 @@ package levelDbStore
 
 type ITransactionsStore interface {
 	GetLastTransactionBlock() int
-	GetAddressTransactionsHash(
+	GetCursorFromAddress(
 		address string,
-		startTime int,
-		endTime int,
-	) ([]string, error)
+	) (string, error)
+	GetFirstCursorTransactionHashes(
+		address string,
+	) (*CursorTransactionHashes, error)
+	GetCursorTransactionHashes(
+		cursor string,
+	) (*CursorTransactionHashes, error)
 	WriteLastIndexedTransactions(
 		AddressHashTransactions map[string][]string,
 		indexBlock int,
 	) error
 	Flush() error
-	GetCursorFromAddress(
-		address string,
-	) (string, error)
-	GetCursorTransactionHashes(
-		cursor string,
-	) (*CursorTransactionHashes, error)
-	GetFirstCursorTransactionHashes(
-		address string,
-	) (*CursorTransactionHashes, error)
 }

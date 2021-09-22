@@ -2,12 +2,8 @@ package synchronizer
 
 import (
 	"log"
-	"sync"
-	"time"
 
 	"swap.io-agent/src/blockchain"
-	"swap.io-agent/src/common/functions"
-	"swap.io-agent/src/env"
 	"swap.io-agent/src/levelDbStore"
 )
 
@@ -65,44 +61,6 @@ func (s *Synchronizer) GetCursorData(
 		NextCursor:   cursorHashes.NextCursor,
 		Transactions: txs,
 	}, blockchain.ApiRequestSuccess
-}
-func (s *Synchronizer) SynchronizeAddress(
-	userId string,
-	address string,
-	startTime int,
-	endTime int,
-) ([]*blockchain.Transaction, error) {
-	transactionsHash, err := s.store.GetAddressTransactionsHash(
-		address,
-		startTime,
-		endTime,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	transactions := make([]*blockchain.Transaction, len(transactionsHash))
-	err = functions.ForWidthBreaks(
-		len(transactionsHash),
-		env.BLOCKCHAIN_REQUESTS_LIMIT,
-		time.Second,
-		func(wg *sync.WaitGroup, step int) error {
-			transaction, err := s.formatter.FormatTransactionFromHash(
-				transactionsHash[step],
-			)
-			if err != nil {
-				return err
-			}
-			transactions[step] = transaction
-
-			return nil
-		},
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return transactions, nil
 }
 
 func (*Synchronizer) Start() {}
