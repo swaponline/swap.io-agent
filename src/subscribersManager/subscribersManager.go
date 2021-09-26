@@ -6,12 +6,12 @@ import (
 )
 
 type SubscribesManager struct {
-	memoryStore redisStore.ISubscribersStore
+	memoryStore *redisStore.RedisDb
 	diskStore   *levelDbStore.SubscribersStore
 }
 
 type SubscribesManagerConfig struct {
-	MemoryStore redisStore.ISubscribersStore
+	MemoryStore *redisStore.RedisDb
 	DiskStore   *levelDbStore.SubscribersStore
 }
 
@@ -35,28 +35,8 @@ func (s *SubscribesManager) LoadAllSubscriptions() error {
 			}
 		}
 	}
-	return nil
-}
-func (s *SubscribesManager) LoadSubscriptions(
-	userId string,
-) error {
-	subscriptions, err := s.diskStore.GetSubscriptions(userId)
-	if err != nil {
-		return err
-	}
-	for _, subscription := range subscriptions {
-		err := s.SubscribeUserToAddress(userId, subscription, false)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
 
-func (s *SubscribesManager) GetSubscriptionsSize(
-	userId string,
-) (int, error) {
-	return s.diskStore.GetSubscriptionsSize(userId)
+	return nil
 }
 
 func (s *SubscribesManager) GetSubscribersFromAddresses(
@@ -68,28 +48,12 @@ func (s *SubscribesManager) GetSubscribersFromAddresses(
 func (s *SubscribesManager) SubscribeUserToAddress(
 	userId string, address string, isWriteToDisk bool,
 ) error {
-	if isWriteToDisk {
-		err := s.diskStore.AddSubscription(userId, address)
-		if err != nil {
-			return err
-		}
+	err := s.diskStore.AddSubscription(userId, address)
+	if err != nil {
+		return err
 	}
 
 	return s.memoryStore.AddSubscription(userId, address)
-}
-func (s *SubscribesManager) SubscribeUserToAddresses(
-	userId string, addresses []string, isWriteToDisk bool,
-) int {
-	writed := 0
-	for _, address := range addresses {
-		err := s.SubscribeUserToAddress(userId, address, isWriteToDisk)
-		if err != nil {
-			return len(addresses) - writed
-		}
-		writed += 1
-	}
-
-	return 0
 }
 func (s *SubscribesManager) UnsubscribeUserToAddress(
 	userId string, address string,
@@ -98,27 +62,8 @@ func (s *SubscribesManager) UnsubscribeUserToAddress(
 	if err != nil {
 		return err
 	}
-	return s.memoryStore.RemoveSubscription(userId, address)
-}
-func (s *SubscribesManager) UnsubscribeUserToAddresses(
-	userId string, addresses []string,
-) int {
-	deleted := 0
-	for _, address := range addresses {
-		err := s.UnsubscribeUserToAddress(userId, address)
-		if err != nil {
-			return len(addresses) - deleted
-		}
-		deleted += 1
-	}
 
-	return 0
-}
-func (s *SubscribesManager) ClearAllUserSubscriptions(
-	userId string,
-) error {
-	//!!! no clear disk store
-	return s.memoryStore.RemoveSubscriptions(userId)
+	return s.memoryStore.RemoveSubscription(userId, address)
 }
 
 func (*SubscribesManager) Start() {}

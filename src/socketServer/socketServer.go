@@ -10,10 +10,12 @@ import (
 	"github.com/googollee/go-socket.io/engineio"
 	"swap.io-agent/src/auth"
 	"swap.io-agent/src/blockchain"
+	"swap.io-agent/src/redisStore"
 	"swap.io-agent/src/subscribersManager"
 )
 
 type Config struct {
+	usersManager     redisStore.IUserManager
 	subscribeManager *subscribersManager.SubscribesManager
 	onNotifyUsers    chan *blockchain.TransactionPipeData
 }
@@ -38,13 +40,9 @@ func InitializeServer(config Config) *SocketServer {
 		)
 		connections.Store(userId, s)
 		s.SetContext(userId)
-		err := config.subscribeManager.LoadSubscriptions(
-			userId,
-		)
-		if err != nil {
-			log.Println(err)
-			return err
-		}
+
+		config.usersManager.ActiveUser(userId)
+
 		log.Printf("connect: %v", userId)
 
 		return nil
@@ -90,32 +88,10 @@ func InitializeServer(config Config) *SocketServer {
 		log.Printf(`%#v`, payload)
 		return feedBackOk(``)
 	})
-	socketServer.io.OnEvent("/", "subscriptionsSize", func(
-		s socketio.Conn,
-	) string {
-		userId := s.Context().(string)
-		size, err := config.subscribeManager.GetSubscriptionsSize(
-			userId,
-		)
-		if err != nil {
-			log.Println(
-				"err",
-				err, "then unsubscribe user",
-				"user:", s.Context(),
-			)
-			return feedBackErr("")
-		}
-
-		return feedBackOk(
-			SubscriptionsSize{
-				Size: size,
-			},
-		)
-	})
 	socketServer.io.OnDisconnect("/", func(s socketio.Conn, reason string) {
 		userId := s.Context()
 		connections.Delete(userId)
-		err := config.subscribeManager.ClearAllUserSubscriptions(userId.(string))
+		err := config.usersManager.DeactiveUser(userId.(string))
 		if err != nil {
 			log.Println(
 				"err",
