@@ -45,7 +45,7 @@ func main() {
 		log.Panicln(err)
 	}
 
-	subscribersStoreDisk, err := levelDbStore.InitialiseSubscriberStore()
+	subscribersStoreDisk, err := levelDbStore.InitialiseSubscribersStore()
 	if err != nil {
 		log.Panicf("Subscribers store not initialize, err: %v", err)
 	}

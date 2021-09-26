@@ -7,6 +7,7 @@ import (
 
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
+	"swap.io-agent/src/env"
 )
 
 type SubscribersStore struct {
@@ -15,8 +16,8 @@ type SubscribersStore struct {
 
 const subscribersStoreDbDir = "./subscriptions"
 
-func InitialiseSubscriberStore() (*SubscribersStore, error) {
-	db, err := leveldb.OpenFile(subscribersStoreDbDir, nil)
+func InitialiseSubscribersStore() (*SubscribersStore, error) {
+	db, err := leveldb.OpenFile(subscribersStoreDbDir+"/"+env.BLOCKCHAIN, nil)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"db not open %v. err - %v", subscribersStoreDbDir, err,
@@ -28,19 +29,38 @@ func InitialiseSubscriberStore() (*SubscribersStore, error) {
 	}, nil
 }
 
+func createSubsctiptin(userId, address string) string {
+	return userId + "|" + address
+}
+func parseSubscription(subscription string) (string, string) {
+	subscriptionData := strings.Split(subscription, "|")
+	if len(subscriptionData) != 2 {
+		log.Panicf("incorrect subscriptionData levelDb %#v", subscriptionData)
+	}
+	return subscriptionData[0], subscriptionData[1]
+}
+
+func (s *SubscribersStore) GetAllSubscriptions() (map[string][]string, error) {
+	subscriptions := make(map[string][]string)
+
+	iter := s.db.NewIterator(nil, nil)
+	for iter.Next() {
+		userId, address := parseSubscription(string(iter.Key()))
+		subscriptions[userId] = append(subscriptions[userId], address)
+	}
+	iter.Release()
+	if err := iter.Error(); err != nil {
+		return subscriptions, err
+	}
+
+	return subscriptions, nil
+}
 func (s *SubscribersStore) GetSubscriptions(userId string) ([]string, error) {
 	subscriptions := []string{}
 	iter := s.db.NewIterator(util.BytesPrefix([]byte(userId+"|")), nil)
 	for iter.Next() {
-		subscriptionData := strings.Split(string(iter.Key()), "|")
-		if len(subscriptionData) != 2 {
-			log.Printf("incorrect subscriptionData levelDb %#v", subscriptionData)
-			return subscriptions, fmt.Errorf(
-				"incorrect subscriptionData levelDb %#v",
-				subscriptionData,
-			)
-		}
-		subscriptions = append(subscriptions, subscriptionData[1])
+		_, address := parseSubscription(string(iter.Key()))
+		subscriptions = append(subscriptions, address)
 	}
 	iter.Release()
 	if err := iter.Error(); err != nil {
@@ -66,12 +86,19 @@ func (s *SubscribersStore) GetSubscriptionsSize(userId string) (int, error) {
 func (s *SubscribersStore) AddSubscription(
 	userId string, address string,
 ) error {
-	return s.db.Put([]byte(userId+"|"+address), []byte{}, nil)
+	return s.db.Put(
+		[]byte(createSubsctiptin(userId, address)),
+		[]byte{},
+		nil,
+	)
 }
 func (s *SubscribersStore) RemoveSubscription(
 	userId string, address string,
 ) error {
-	return s.db.Delete([]byte(userId+"|"+address), nil)
+	return s.db.Delete(
+		[]byte(createSubsctiptin(userId, address)),
+		nil,
+	)
 }
 
 func (*SubscribersStore) Start() {}
