@@ -22,6 +22,21 @@ func InitialiseSubscribersStore(config SubscribesManagerConfig) *SubscribesManag
 	}
 }
 
+func (s *SubscribesManager) LoadAllSubscriptions() error {
+	allSubscriptions, err := s.diskStore.GetAllSubscriptions()
+	if err != nil {
+		return err
+	}
+	for userId, subscriptions := range allSubscriptions {
+		for _, subscription := range subscriptions {
+			err := s.memoryStore.AddSubscription(userId, subscription)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
 func (s *SubscribesManager) LoadSubscriptions(
 	userId string,
 ) error {

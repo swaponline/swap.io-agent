@@ -8,6 +8,18 @@ import (
 
 var ctx = context.Background()
 
+const activeUsersKey = "activeUsers"
+
+func (db *RedisDb) UserIsActive(userId string) (bool, error) {
+	return db.client.SIsMember(ctx, activeUsersKey, userId).Result()
+}
+func (db *RedisDb) ActiveUser(userId string) error {
+	return db.client.SAdd(ctx, activeUsersKey, userId).Err()
+}
+func (db *RedisDb) DeactiveUser(userId string) error {
+	return db.client.SRem(ctx, activeUsersKey, userId).Err()
+}
+
 // todo: return data, err
 func (db *RedisDb) GetSubscribersFromAddresses(addresses []string) []string {
 	subscribers := Set.New()
