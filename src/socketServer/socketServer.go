@@ -25,6 +25,11 @@ type SocketServer struct {
 }
 
 func InitializeServer(config Config) *SocketServer {
+	err := config.subscribeManager.LoadAllSubscriptions()
+	if err != nil {
+		log.Panicln(err)
+	}
+
 	socketServer := SocketServer{
 		io: socketio.NewServer(&engineio.Options{
 			Transports:     DefaultTransport,
