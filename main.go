@@ -14,6 +14,7 @@ import (
 	"swap.io-agent/src/httpHandler"
 	"swap.io-agent/src/httpServer"
 	"swap.io-agent/src/levelDbStore"
+	"swap.io-agent/src/queueEvents"
 	"swap.io-agent/src/redisStore"
 	"swap.io-agent/src/serviceRegistry"
 	"swap.io-agent/src/socketServer"
@@ -35,6 +36,9 @@ func main() {
 	if err != nil {
 		log.Panicln(err)
 	}
+
+	queueEvents := queueEvents.InitializeQueueEvents()
+	registry.RegisterService(queueEvents)
 
 	subscribersStoreMemory, err := redisStore.InitializeDB()
 	if err != nil {
@@ -87,9 +91,9 @@ func main() {
 
 	synchronizer.Register(registry)
 
-	indexer.IndexerRegister(registry)
-
 	subscribersManager.Register(registry)
+
+	indexer.IndexerRegister(registry)
 
 	transactionNotifierPipe.Register(registry)
 

@@ -1,6 +1,7 @@
 package socketServer
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -10,12 +11,14 @@ import (
 	"github.com/googollee/go-socket.io/engineio"
 	"swap.io-agent/src/auth"
 	"swap.io-agent/src/blockchain"
+	"swap.io-agent/src/queueEvents"
 	"swap.io-agent/src/redisStore"
 	"swap.io-agent/src/subscribersManager"
 )
 
 type Config struct {
 	usersManager     redisStore.IUserManager
+	queueEvents      *queueEvents.QueueEvents
 	subscribeManager *subscribersManager.SubscribesManager
 	onNotifyUsers    chan *blockchain.TransactionPipeData
 }
@@ -23,12 +26,20 @@ type Config struct {
 type SocketServer struct {
 	io *socketio.Server
 }
+type SocketServerUser struct {
+	id              string
+	conn            socketio.Conn
+	eventIsReceived chan<- struct{}
+	isStopped       <-chan struct{}
+	stopEvents      context.CancelFunc
+}
 
 func InitializeServer(config Config) *SocketServer {
 	err := config.subscribeManager.LoadAllSubscriptions()
 	if err != nil {
 		log.Panicln(err)
 	}
+	config.queueEvents.ReseiveQueueForUser("0") // leger
 
 	socketServer := SocketServer{
 		io: socketio.NewServer(&engineio.Options{
@@ -43,7 +54,29 @@ func InitializeServer(config Config) *SocketServer {
 		userId, _ := auth.DecodeAccessToken(
 			url.Query().Get("token"),
 		)
-		connections.Store(userId, s)
+
+		sourceTx, isOk, isStopped, stop := config.queueEvents.GetTxEventNotifier(userId)
+		go func() {
+			for {
+				select {
+				case tx := <-sourceTx:
+					{
+						txBytes, _ := json.Marshal(tx)
+						s.Emit("newTransaction", string(txBytes))
+					}
+				case <-isStopped:
+					return
+				}
+			}
+		}()
+
+		connections.Store(userId, SocketServerUser{
+			id:              userId,
+			conn:            s,
+			eventIsReceived: isOk,
+			isStopped:       isStopped,
+			stopEvents:      stop,
+		})
 		s.SetContext(userId)
 
 		config.usersManager.ActiveUser(userId)
@@ -51,6 +84,17 @@ func InitializeServer(config Config) *SocketServer {
 		log.Printf("connect: %v", userId)
 
 		return nil
+	})
+	socketServer.io.OnEvent("/", "receivedTx", func(s socketio.Conn) {
+		if userData, ok := connections.Load(s.Context().(string)); ok {
+			select {
+			case userData.(SocketServerUser).eventIsReceived <- struct{}{}:
+			case <-userData.(SocketServerUser).isStopped:
+				{
+					return
+				}
+			}
+		}
 	})
 	socketServer.io.OnEvent("/", "subscribe", func(
 		s socketio.Conn,
@@ -95,7 +139,11 @@ func InitializeServer(config Config) *SocketServer {
 	})
 	socketServer.io.OnDisconnect("/", func(s socketio.Conn, reason string) {
 		userId := s.Context()
+		if userData, ok := connections.Load(userId); ok {
+			userData.(SocketServerUser).stopEvents()
+		}
 		connections.Delete(userId)
+
 		err := config.usersManager.DeactiveUser(userId.(string))
 		if err != nil {
 			log.Println(
