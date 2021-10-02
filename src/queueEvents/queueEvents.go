@@ -117,7 +117,7 @@ func (q *QueueEvents) GetTxEventNotifier(
 
 	return notifier, isOk, stopCtx.Done(), stopFn
 }
-func (q *QueueEvents) ReseiveQueueForUser(agentUserId string) error {
+func (q *QueueEvents) ReservQueueForUser(agentUserId string) error {
 	err := q.controllerConn.CreateTopics(kafka.TopicConfig{
 		Topic:             agentUserId,
 		NumPartitions:     1,

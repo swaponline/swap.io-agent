@@ -59,7 +59,7 @@ func (i *Indexer) RunScanner() {
 		if err == blockchain.ApiNotExist {
 			for err := i.writeExpectedTxsToQueueEvents(
 				[]*blockchain.Transaction{{
-					Hash:              "textTx" + strconv.Itoa(int(time.Now().Unix())),
+					Hash:              "time" + strconv.Itoa(int(time.Now().Unix())),
 					AllSpendAddresses: []string{"mi46vEy3EPcDx1PLMw7hgAhHqCWSBPnuMA"},
 				}},
 			); err != nil; {

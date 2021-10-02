@@ -39,7 +39,7 @@ func InitializeServer(config Config) *SocketServer {
 	if err != nil {
 		log.Panicln(err)
 	}
-	config.queueEvents.ReseiveQueueForUser("0") // leger
+	config.queueEvents.ReservQueueForUser("0") // leger
 
 	socketServer := SocketServer{
 		io: socketio.NewServer(&engineio.Options{
