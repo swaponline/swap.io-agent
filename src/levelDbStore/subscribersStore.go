@@ -7,7 +7,7 @@ import (
 
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
-	"swap.io-agent/src/env"
+	"swap.io-agent/src/config"
 )
 
 type SubscribersStore struct {
@@ -17,7 +17,7 @@ type SubscribersStore struct {
 const subscribersStoreDbDir = "./subscriptions"
 
 func InitialiseSubscribersStore() (*SubscribersStore, error) {
-	db, err := leveldb.OpenFile(subscribersStoreDbDir+"/"+env.BLOCKCHAIN, nil)
+	db, err := leveldb.OpenFile(subscribersStoreDbDir+"/"+config.BLOCKCHAIN, nil)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"db not open %v. err - %v", subscribersStoreDbDir, err,

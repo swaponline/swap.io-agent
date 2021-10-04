@@ -8,7 +8,7 @@ import (
 
 	"github.com/segmentio/kafka-go"
 	"swap.io-agent/src/blockchain"
-	"swap.io-agent/src/env"
+	"swap.io-agent/src/config"
 )
 
 type QueueEvents struct {
@@ -17,12 +17,12 @@ type QueueEvents struct {
 }
 
 func InitializeQueueEvents() *QueueEvents {
-	controllerConn, err := kafka.Dial("tcp", env.KAFKA_ADDR)
+	controllerConn, err := kafka.Dial("tcp", config.KAFKA_ADDR)
 	if err != nil {
 		log.Panicln(err)
 	}
 	kafkaWriter := &kafka.Writer{
-		Addr:     kafka.TCP(env.KAFKA_ADDR),
+		Addr:     kafka.TCP(config.KAFKA_ADDR),
 		Balancer: &kafka.LeastBytes{},
 	}
 
@@ -62,7 +62,7 @@ func (q *QueueEvents) GetTxEventNotifier(
 	context.CancelFunc,
 ) {
 	r := kafka.NewReader(kafka.ReaderConfig{
-		Brokers:   []string{env.KAFKA_ADDR},
+		Brokers:   []string{config.KAFKA_ADDR},
 		Topic:     agentUserId,
 		GroupID:   "agentId",
 		Partition: 0,

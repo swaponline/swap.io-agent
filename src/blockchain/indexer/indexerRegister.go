@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"swap.io-agent/src/blockchain/networks"
-	"swap.io-agent/src/env"
+	"swap.io-agent/src/config"
 	"swap.io-agent/src/levelDbStore"
 	"swap.io-agent/src/queueEvents"
 	"swap.io-agent/src/serviceRegistry"
@@ -29,7 +29,7 @@ func IndexerRegister(reg *serviceRegistry.ServiceRegistry) {
 	if err != nil {
 		log.Panicln(err)
 	}
-	networkApi := (*networks)[env.BLOCKCHAIN]
+	networkApi := (*networks)[config.BLOCKCHAIN]
 
 	var transactionStore *levelDbStore.TransactionsStore
 	err = reg.FetchService(&transactionStore)

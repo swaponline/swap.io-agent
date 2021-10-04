@@ -3,15 +3,15 @@ package auth
 import (
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwt"
-	"swap.io-agent/src/env"
+	"swap.io-agent/src/config"
 )
 
-func DecodeAccessToken(tokenString string) (string,bool) {
+func DecodeAccessToken(tokenString string) (string, bool) {
 	info, err := jwt.Parse(
 		[]byte(tokenString),
 		jwt.WithVerify(
 			jwa.HS256,
-			[]byte(env.SECRET_TOKEN),
+			[]byte(config.SECRET_TOKEN),
 		),
 	)
 	if err != nil {

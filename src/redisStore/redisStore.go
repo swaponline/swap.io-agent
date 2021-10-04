@@ -2,7 +2,7 @@ package redisStore
 
 import (
 	"github.com/go-redis/redis/v8"
-	"swap.io-agent/src/env"
+	"swap.io-agent/src/config"
 )
 
 type RedisDb struct {
@@ -13,12 +13,12 @@ func InitializeDB() (RedisDb, error) {
 	db := RedisDb{}
 
 	db.client = redis.NewClient(&redis.Options{
-		Addr: env.REDIS_ADDR,
-		Password: env.REDIS_PASSWORD,
-		DB: env.REDIS_DB,
+		Addr:     config.REDIS_ADDR,
+		Password: config.REDIS_PASSWORD,
+		DB:       config.REDIS_DB,
 	})
 
-	return db,nil
+	return db, nil
 }
 
 func (db *RedisDb) Start() {}
