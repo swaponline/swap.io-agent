@@ -3,6 +3,7 @@ package httpServer
 import (
 	"io"
 	"net/http"
+	"swap.io-agent/src/subscribersManager"
 
 	"swap.io-agent/src/auth"
 	"swap.io-agent/src/blockchain"
@@ -13,6 +14,7 @@ type HttpServer struct {
 }
 type HttpServerConfig struct {
 	Synhronizer blockchain.ISynchronizer
+	SubscribersManager *subscribersManager.SubscribesManager
 }
 
 func InitializeServer(config HttpServerConfig) *HttpServer {
@@ -30,6 +32,7 @@ func InitializeServer(config HttpServerConfig) *HttpServer {
 		}
 	})
 	httpServer.InitializeCursorTxsEndoints()
+	httpServer.InitializeSubscriptionsEndpoints(config.SubscribersManager)
 
 	return &httpServer
 }

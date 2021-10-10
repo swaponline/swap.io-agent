@@ -10,7 +10,7 @@ import (
 	"swap.io-agent/src/blockchain/networks"
 	"swap.io-agent/src/blockchain/synchronizer"
 	"swap.io-agent/src/blockchain/transactionNotifierPipe"
-	"swap.io-agent/src/env"
+	"swap.io-agent/src/config"
 	"swap.io-agent/src/httpHandler"
 	"swap.io-agent/src/httpServer"
 	"swap.io-agent/src/levelDbStore"
@@ -24,7 +24,7 @@ import (
 func main() {
 	registry := serviceRegistry.NewServiceRegistry()
 
-	err := env.InitializeConfig()
+	err := config.InitializeConfig()
 	if err != nil {
 		log.Panicln(err)
 	}
@@ -60,8 +60,8 @@ func main() {
 
 	transactionStore, err := levelDbStore.InitialiseTransactionStore(
 		levelDbStore.TransactionsStoreConfig{
-			Name:                 env.BLOCKCHAIN,
-			DefaultScannedBlocks: env.BLOCKCHAIN_DEFAULT_SCANNED_BLOCK,
+			Name:                 config.BLOCKCHAIN,
+			DefaultScannedBlocks: config.BLOCKCHAIN_DEFAULT_SCANNED_BLOCK,
 		},
 	)
 	if err != nil {

@@ -23,8 +23,8 @@ func Register(reg *serviceRegistry.ServiceRegistry) {
 		log.Panicln(err)
 	}
 
-	var subscribeManager *subscribersManager.SubscribesManager
-	err = reg.FetchService(&subscribeManager)
+	var subscribersManager *subscribersManager.SubscribesManager
+	err = reg.FetchService(&subscribersManager)
 	if err != nil {
 		log.Panicln(err)
 	}
@@ -38,9 +38,8 @@ func Register(reg *serviceRegistry.ServiceRegistry) {
 	err = reg.RegisterService(
 		InitializeServer(Config{
 			usersManager:     usersManager,
-			subscribeManager: subscribeManager,
+			subscribersManager: subscribersManager,
 			queueEvents:      queueEvents,
-			onNotifyUsers:    notifyTransactionPipe.Out,
 		}),
 	)
 	if err != nil {

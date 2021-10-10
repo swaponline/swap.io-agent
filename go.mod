@@ -4,8 +4,7 @@ go 1.16
 
 require (
 	github.com/go-redis/redis/v8 v8.10.0
-	github.com/gomodule/redigo v1.8.5 // indirect
-	github.com/googollee/go-socket.io v1.6.0
+	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/joho/godotenv v1.3.0
 	github.com/lestrrat-go/jwx v1.2.1
 	github.com/segmentio/kafka-go v0.4.20

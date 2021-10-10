@@ -27,6 +27,7 @@ func (s *SubscribesManager) LoadAllSubscriptions() error {
 	if err != nil {
 		return err
 	}
+
 	for userId, subscriptions := range allSubscriptions {
 		for _, subscription := range subscriptions {
 			err := s.memoryStore.AddSubscription(userId, subscription)
