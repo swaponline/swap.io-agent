@@ -38,7 +38,9 @@ func InitializeServer(config Config) *SocketServer {
     wsHandle := func(w http.ResponseWriter, r *http.Request) {
         userId, err := auth.AuthenticationRequest(r)
         if err != nil {
+            log.Println("ERROR user not connected")
             w.WriteHeader(http.StatusUnauthorized)
+            w.Write([]byte(`failed auth`))
             return
         }
 
@@ -90,7 +92,7 @@ func InitializeServer(config Config) *SocketServer {
     }
 
     http.HandleFunc("/ws", wsHandle)
-	
+
 	return &SocketServer{}
 }
 

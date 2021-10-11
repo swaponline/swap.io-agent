@@ -14,6 +14,11 @@ func (*HttpServer) InitializeSubscriptionsEndpoints(
 	http.HandleFunc(
 		"/subscribe",
 		func(rw http.ResponseWriter, r *http.Request) {
+            if r.Method != "POST" {
+                rw.WriteHeader(http.StatusNotFound)
+                return
+            }
+
             userId, err := auth.AuthenticationRequest(r)
             if err != nil {
                 rw.WriteHeader(http.StatusUnauthorized)
@@ -45,6 +50,11 @@ func (*HttpServer) InitializeSubscriptionsEndpoints(
     http.HandleFunc(
 		"/unsubscribe",
 		func(rw http.ResponseWriter, r *http.Request) {
+            if r.Method != "DELETE" {
+                rw.WriteHeader(http.StatusNotFound)
+                return
+            }
+
             userId, err := auth.AuthenticationRequest(r)
             if err != nil {
                 rw.WriteHeader(http.StatusUnauthorized)

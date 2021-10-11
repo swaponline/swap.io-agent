@@ -65,7 +65,7 @@ func (i *Indexer) RunScanner() {
 			); err != nil; {
 				log.Println("ERROR", err)
 			}
-			<-time.After(time.Millisecond * 2000)
+			<-time.After(time.Millisecond * 100)
 			continue
 		}
 		if err != blockchain.ApiRequestSuccess {

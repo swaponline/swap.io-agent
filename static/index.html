@@ -1,183 +1,176 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Document</title>
-</head>
-<body>
-<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
-<style>
-  body {
-    font-family: sans-serif;
-  }
-  .content {
-    display: grid;
-    grid-template-columns: 257px 1fr 1fr;
-    grid-column-gap: 10px;
-  }
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
+    />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <style>
+      body {
+        font-family: sans-serif;
+      }
+      .content {
+        display: grid;
+        grid-template-columns: 257px 1fr 1fr;
+        grid-column-gap: 10px;
+      }
 
-  .submitForm__btns {
-    display: flex;
-    justify-content: center;
-    margin-top: 10px;
-  }
+      .submitForm__btns {
+        display: flex;
+        justify-content: center;
+        margin-top: 10px;
+      }
 
-  .data__helperText {
-    margin-bottom: 10px;
-    font-size: 16px;
-    font-weight: 500;
-  }
-</style>
-<div>
-  <div class="content">
+      .data__helperText {
+        margin-bottom: 10px;
+        font-size: 16px;
+        font-weight: 500;
+      }
+    </style>
     <div>
-      <form id="subscribeForm">
-        <h3>subscribe to address</h3>
-        <label>
-          address
-          <input name="address" style="margin-left: 10px" type="text"/>
-        </label>
-        <br>
-        <div class="submitForm__btns">
-          <button>emit</button>
+      <div class="content">
+        <div>
+          <form id="subscribeForm">
+            <h3>subscribe to address</h3>
+            <label>
+              address
+              <input name="address" style="margin-left: 10px" type="text" />
+            </label>
+            <br />
+            <div class="submitForm__btns">
+              <button>emit</button>
+            </div>
+          </form>
+          <form id="unsubscribeForm">
+            <h3>unsubscribe to address</h3>
+            <label>
+              address
+              <input name="address" style="margin-left: 10px" type="text" />
+            </label>
+            <br />
+            <div class="submitForm__btns">
+              <button>emit</button>
+            </div>
+          </form>
         </div>
-      </form>
-      <form id="unsubscribeForm">
-        <h3>unsubscribe to address</h3>
-        <label>
-          address
-          <input name="address" style="margin-left: 10px" type="text"/>
-        </label>
-        <br>
-        <div class="submitForm__btns">
-          <button>emit</button>
-        </div>
-      </form>
-      <form id="subscriptionsSizeForm">
-        <h3>subscriptions size</h3>
-        <div class="submitForm__btns">
-          <button>emit</button>
-        </div>
-      </form>
-    </div>
-    <div id="submittedData">
-    </div>
-    <div id="acceptedData">
-    </div>
-  </div>
-  <script>
-		const insertDataBlock = (target, helperText, value) => {
-			const dataEl = document.createElement('div')
+        <div id="submittedData"></div>
+        <div id="acceptedData"></div>
+      </div>
+      <script>
+        const insertDataBlock = (target, helperText, value) => {
+          const dataEl = document.createElement("div");
 
-			const dataHelperTextEl       = document.createElement('div')
-			dataHelperTextEl.className   = 'data__helperText'
-			dataHelperTextEl.textContent = helperText
+          const dataHelperTextEl = document.createElement("div");
+          dataHelperTextEl.className = "data__helperText";
+          dataHelperTextEl.textContent = helperText;
 
-			const dataValueEl           = document.createElement('pre')
-			dataValueEl.className = 'data__value'
-			dataValueEl.append(JSON.stringify(value, null, 2))
+          const dataValueEl = document.createElement("pre");
+          dataValueEl.className = "data__value";
+          dataValueEl.append(JSON.stringify(value, null, 2));
 
-			dataEl.append(dataHelperTextEl)
-			dataEl.append(dataValueEl)
-			target.append(dataEl)
-		}
-    document.body.onload = async () => {
-			await (
-				fetch('/getToken')
-				.then(data => data.text())
-				.then((token) => {
-					const socket = io("/", {
-						transports: ['websocket'],
-						query: {
-							token
-						}
-					});
-					console.log(token, socket);
-					window.socket = socket;
-				})
-      )
-
-			const subscribeForm         = document.querySelector('#subscribeForm')
-      const unsubscribeForm       = document.querySelector('#unsubscribeForm')
-      const subscriptionsSizeForm = document.querySelector('#subscriptionsSizeForm')
-
-			const submittedDataEl       = document.querySelector('#submittedData')
-			const acceptedDataEl        = document.querySelector('#acceptedData')
-
-			subscribeForm.addEventListener('submit', (event) => {
-				const target = event.target
-
-				const data = {
-					address: target.address.value,
-				}
-				insertDataBlock(
-					submittedDataEl,
-          `subscribe address - ${data.address}`,
-          data
-        )
-        socket.emit("subscribe", data, (subscribeData) => {
-        	insertDataBlock(
-        		acceptedDataEl,
-            `return subscribe data for address - ${data.address}`,
-            JSON.parse(subscribeData)
+          dataEl.append(dataHelperTextEl);
+          dataEl.append(dataValueEl);
+          target.append(dataEl);
+        };
+        document.body.onload = async () => {
+          const token = (
+            await fetch("/getToken")
+                    .then((data) => data.text())
+                    .then((token) => {
+                      console.log(token)
+                      return token
+                    })
           )
-        })
 
-				event.preventDefault()
-			})
-      unsubscribeForm.addEventListener('submit', (event) => {
-        event.preventDefault()
-				const target = event.target
+          const subscribeForm = document.querySelector("#subscribeForm");
+          const unsubscribeForm = document.querySelector("#unsubscribeForm");
 
-				const data = {
-					address: target.address.value,
-				}
-				insertDataBlock(
-					submittedDataEl,
-          `unsubscribe address - ${data.address}`,
-          data
-        )
-        socket.emit("unsubscribe", data, (unsubscribeData) => {
-        	insertDataBlock(
-        		acceptedDataEl,
-            `return unsubscribe data for address - ${data.address}`,
-            JSON.parse(unsubscribeData)
-          )
-        })
-			})
-      subscriptionsSizeForm.addEventListener('submit', (event) => {
-				const target = event.target
+          const submittedDataEl = document.querySelector("#submittedData");
+          const acceptedDataEl = document.querySelector("#acceptedData");
 
-				insertDataBlock(
-					submittedDataEl,
-          `subscriptionsSize emit`,
-          {}
-        )
-        socket.emit("subscriptionsSize", "", (unsubscribeData) => {
-          console.log(unsubscribeData)
-        	insertDataBlock(
-        		acceptedDataEl,
-            `subscriptionsSize emit return`,
-            JSON.parse(unsubscribeData)
-          )
-        })
+          subscribeForm.addEventListener("submit", (event) => {
+            event.preventDefault();
 
-				event.preventDefault()
-			})
-      socket.on('newTransaction', (data) => {
-      	data = JSON.parse(data)
-        insertDataBlock(
-        	acceptedDataEl,
-          `new transaction`,
-          data
-        )
-        socket.emit("receivedTx")
-      })
-    }
-  </script>
-</div>
-</body>
+            const address = event.target.address.value
+
+            insertDataBlock(
+              submittedDataEl,
+              `POST /subscribe?token=${token}&address=${address}`,
+              {}
+            );
+
+            fetch(`/subscribe?token=${token}&address=${address}`, {
+              method: `POST`,
+            })
+              .then((data) => insertDataBlock(
+                acceptedDataEl,
+                `subsctibe status ${data.status}`,
+                {}
+              ))
+              .catch((data) => insertDataBlock(
+                acceptedDataEl,
+                `error status ${data.status}`,
+                {}
+              ))
+          });
+          unsubscribeForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+
+            const address = event.target.address.value
+
+            insertDataBlock(
+              submittedDataEl,
+              `DELETE /unsubscribe?token=${token}&address=${address}`,
+              {}
+            );
+
+            fetch(`/unsubscribe?token=${token}&address=${address}`, {
+              method: `DELETE`,
+            })
+              .then((data) => insertDataBlock(
+                acceptedDataEl,
+                `subsctibe status ${data.status}`,
+                {}
+              ))
+              .catch((data) => insertDataBlock(
+                acceptedDataEl,
+                `error status ${data.status}`,
+                {}
+              ))
+          });
+
+          let socket = new WebSocket(`ws://${document.location.host}/ws?token=${token}`);
+          window.socket = socket
+
+          socket.onopen = function(e) {
+            console.log('connect')
+          };
+
+          socket.onmessage = function(event) {
+            insertDataBlock(
+              acceptedDataEl,
+              `new transaction`,
+              JSON.parse(event.data)
+            );
+            console.log(event.data)
+            socket.send('');
+          };
+
+          socket.onclose = function(event) {
+            console.log('disconnect')
+          };
+
+          socket.onerror = function(error) {
+            console.error(error)
+          };
+        };
+      </script>
+    </div>
+  </body>
 </html>
