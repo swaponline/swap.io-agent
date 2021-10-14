@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"swap.io-agent/src/auth"
+    "time"
 
 	"swap.io-agent/src/queueEvents"
 	"swap.io-agent/src/redisStore"
@@ -22,6 +23,9 @@ type Config struct {
     queueEvents  *queueEvents.QueueEvents
     subscribersManager *subscribersManager.SubscribesManager
 }
+
+const writePeriod = time.Second * 1
+const readPeriod  = time.Second * 2
 
 var upgrader = websocket.Upgrader{} // use default options
 
@@ -53,40 +57,70 @@ func InitializeServer(config Config) *SocketServer {
 
         log.Println("connect:", userId)
 
+        ticker := time.NewTicker(writePeriod)
+        defer ticker.Stop()
+
         sourceTx,
         isOk,
         isStopped,
-        stop := config.queueEvents.GetTxEventNotifier(userId)
+        stopTxSource := config.queueEvents.GetTxEventNotifier(userId)
 		go func() {
-			for {
+            for {
 				select {
-				case tx := <-sourceTx:
+				case <-isStopped.Done():
+                    {
+                        return
+                    }
+                case tx, ok := <-sourceTx:
 					{
+                        if !ok {
+                            return
+                        }
 						txBytes, _ := json.Marshal(tx)
                         err := c.WriteMessage(websocket.TextMessage, txBytes)
                         if err != nil {
                             log.Println("ERROR",err)
-                            break
+                            return
                         }
-
 						log.Println("send tx for", userId, tx.Hash)
-					}
-				case <-isStopped:
-					return
+                    }
+                case _, ok := <-ticker.C:
+                    {
+                        if !ok {
+                            return
+                        }
+                        c.SetWriteDeadline(time.Now().Add(writePeriod))
+                        if err := c.WriteMessage(
+                            websocket.PingMessage, nil,
+                        ); err != nil {
+                            log.Println("ERROR", err)
+                            stopTxSource()
+                            return
+                        }
+                        log.Println("ping")
+                    }
 				}
 			}
 		}()
 
+        c.SetReadDeadline(time.Now().Add(readPeriod));
+        c.SetPongHandler(
+            func(string) error {
+                log.Println("pong")
+                c.SetReadDeadline(time.Now().Add(readPeriod));
+                return nil
+            },
+        )
         for {
             _, _, err := c.ReadMessage()
             if err != nil {
                 log.Println("disconnect:", userId)
-                stop()
-                break
+                stopTxSource()
+                return
             }
             select {
-            case isOk <- struct{}{}: continue
-            case <- isStopped: break
+            case <- isStopped.Done(): return
+            case isOk <- struct{}{}:
             }
         }
     }

@@ -58,7 +58,7 @@ func (q *QueueEvents) GetTxEventNotifier(
 ) (
 	<-chan blockchain.Transaction,
 	chan<- struct{},
-	<-chan struct{},
+	context.Context,
 	context.CancelFunc,
 ) {
 	r := kafka.NewReader(kafka.ReaderConfig{
@@ -115,7 +115,7 @@ func (q *QueueEvents) GetTxEventNotifier(
 		}
 	}()
 
-	return notifier, isOk, stopCtx.Done(), stopFn
+	return notifier, isOk, stopCtx, stopFn
 }
 func (q *QueueEvents) ReservQueueForUser(agentUserId string) error {
 	err := q.controllerConn.CreateTopics(kafka.TopicConfig{
