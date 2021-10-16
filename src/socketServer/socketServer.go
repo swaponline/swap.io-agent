@@ -1,7 +1,8 @@
 package socketServer
 
 import (
-	"encoding/json"
+    "context"
+    "encoding/json"
 	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
@@ -34,7 +35,7 @@ func InitializeServer(config Config) *SocketServer {
     if err != nil {
         log.Panic(err)
     }
-    err = config.queueEvents.ReservQueueForUser("0")
+    err = config.queueEvents.ReserveQueueForUser("0")
     if err != nil {
         log.Panic(err)
     }
@@ -60,54 +61,44 @@ func InitializeServer(config Config) *SocketServer {
         ticker := time.NewTicker(writePeriod)
         defer ticker.Stop()
 
-        sourceTx,
-        isOk,
-        isStopped,
-        stopTxSource := config.queueEvents.GetTxEventNotifier(userId)
+        ctx, cancel := context.WithCancel(context.Background())
+        defer cancel()
+
+        sourceTx, isOk := config.queueEvents.GetTxEventNotifier(ctx, userId)
+
 		go func() {
             for {
 				select {
-				case <-isStopped.Done():
-                    {
-                        return
-                    }
-                case tx, ok := <-sourceTx:
+                case tx := <-sourceTx:
 					{
-                        if !ok {
-                            return
-                        }
 						txBytes, _ := json.Marshal(tx)
                         err := c.WriteMessage(websocket.TextMessage, txBytes)
                         if err != nil {
-                            log.Println("ERROR",err)
+                            log.Println("ERROR (senderTx)",err)
                             return
                         }
 						log.Println("send tx for", userId, tx.Hash)
                     }
-                case _, ok := <-ticker.C:
+                case <-ticker.C:
                     {
-                        if !ok {
-                            return
-                        }
+                        log.Println("ping")
                         c.SetWriteDeadline(time.Now().Add(writePeriod))
                         if err := c.WriteMessage(
                             websocket.PingMessage, nil,
                         ); err != nil {
-                            log.Println("ERROR", err)
-                            stopTxSource()
+                            log.Println("ERROR (ticker)", err)
                             return
                         }
-                        log.Println("ping")
                     }
 				}
 			}
 		}()
 
-        c.SetReadDeadline(time.Now().Add(readPeriod));
+        c.SetReadDeadline(time.Now().Add(readPeriod))
         c.SetPongHandler(
             func(string) error {
                 log.Println("pong")
-                c.SetReadDeadline(time.Now().Add(readPeriod));
+                c.SetReadDeadline(time.Now().Add(readPeriod))
                 return nil
             },
         )
@@ -115,13 +106,10 @@ func InitializeServer(config Config) *SocketServer {
             _, _, err := c.ReadMessage()
             if err != nil {
                 log.Println("disconnect:", userId)
-                stopTxSource()
                 return
             }
-            select {
-            case <- isStopped.Done(): return
-            case isOk <- struct{}{}:
-            }
+
+            isOk <- struct{}{}
         }
     }
 

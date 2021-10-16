@@ -43,7 +43,7 @@ func (q *QueueEvents) WriteTxsEvents(data map[string][]*blockchain.Transaction) 
 			kafkaMessages = append(kafkaMessages, kafka.Message{
 				Topic: agentUserId,
 				Key:   []byte(tx.Hash),
-				Value: []byte(bytes),
+				Value: bytes,
 			})
 		}
 	}
@@ -54,12 +54,11 @@ func (q *QueueEvents) WriteTxsEvents(data map[string][]*blockchain.Transaction) 
 	)
 }
 func (q *QueueEvents) GetTxEventNotifier(
+	ctx context.Context,
 	agentUserId string,
 ) (
 	<-chan blockchain.Transaction,
 	chan<- struct{},
-	context.Context,
-	context.CancelFunc,
 ) {
 	r := kafka.NewReader(kafka.ReaderConfig{
 		Brokers:   []string{config.KAFKA_ADDR},
@@ -73,11 +72,13 @@ func (q *QueueEvents) GetTxEventNotifier(
 	notifier := make(chan blockchain.Transaction)
 	isOk := make(chan struct{})
 
-	stopCtx, stopFn := context.WithCancel(context.Background())
 	go func() {
-		for stopCtx.Err() == nil {
-			m, err := r.FetchMessage(stopCtx)
-			if stopCtx.Err() != nil {
+		defer close(notifier)
+		defer close(isOk)
+
+		for ctx.Err() == nil {
+			m, err := r.FetchMessage(ctx)
+			if ctx.Err() != nil {
 				return
 			}
 			if err != nil {
@@ -92,32 +93,25 @@ func (q *QueueEvents) GetTxEventNotifier(
 			}
 
 			select {
+			case <-ctx.Done(): return
 			case notifier <- tx:
-			case <-stopCtx.Done():
-				return
 			}
 
-			_, isReseive := <-isOk
-			if isReseive {
-				for err := r.CommitMessages(context.Background(), m); err != nil; {
-					log.Println("failed to commit messages:", err)
-					<-time.After(time.Second)
-				}
+			select {
+			case <-ctx.Done(): return
+			case <-isOk:
+			}
+
+			for err := r.CommitMessages(context.Background(), m); err != nil; {
+				log.Println("failed to commit messages:", err)
+				<-time.After(time.Second)
 			}
 		}
 	}()
-	go func() {
-		<-stopCtx.Done()
-		close(notifier)
-		close(isOk)
-		if err := r.Close(); err != nil {
-			log.Fatal("failed to close connection:", err)
-		}
-	}()
 
-	return notifier, isOk, stopCtx, stopFn
+	return notifier, isOk
 }
-func (q *QueueEvents) ReservQueueForUser(agentUserId string) error {
+func (q *QueueEvents) ReserveQueueForUser(agentUserId string) error {
 	err := q.controllerConn.CreateTopics(kafka.TopicConfig{
 		Topic:             agentUserId,
 		NumPartitions:     1,
