@@ -25,8 +25,8 @@ type Config struct {
     subscribersManager *subscribersManager.SubscribesManager
 }
 
-const writePeriod = time.Second * 1
-const readPeriod  = time.Second * 2
+const writePeriod = time.Minute * 1
+const readPeriod  = time.Minute * 2
 
 var upgrader = websocket.Upgrader{} // use default options
 
@@ -110,6 +110,7 @@ func InitializeServer(config Config) *SocketServer {
             }
 
             isOk <- struct{}{}
+            log.Printf("%v received tx", userId)
         }
     }
 
