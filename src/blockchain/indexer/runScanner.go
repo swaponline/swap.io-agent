@@ -60,6 +60,7 @@ func (i *Indexer) RunScanner() {
 			for err := i.writeExpectedTxsToQueueEvents(
 				[]*blockchain.Transaction{{
 					Hash:              "time" + strconv.Itoa(int(time.Now().Unix())),
+					Journal: make([]blockchain.SpendsInfo, 0),
 					AllSpendAddresses: []string{"mi46vEy3EPcDx1PLMw7hgAhHqCWSBPnuMA"},
 				}},
 			); err != nil; {
