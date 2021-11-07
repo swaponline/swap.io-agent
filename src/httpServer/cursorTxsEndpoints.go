@@ -43,6 +43,7 @@ func (server *HttpServer) InitializeCursorTxsEndoints() {
 				return
 			}
 			if data, err := json.Marshal(cursorData); err == nil {
+				rw.Header().Set("Content-Type", "application/json; charset=utf-8")
 				rw.Write(data)
 				return
 			} else {
@@ -80,6 +81,7 @@ func (server *HttpServer) InitializeCursorTxsEndoints() {
 				return
 			}
 			if data, err := json.Marshal(cursorData); err == nil {
+				rw.Header().Set("Content-Type", "application/json; charset=utf-8")
 				rw.Write(data)
 				return
 			} else {

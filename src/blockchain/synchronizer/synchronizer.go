@@ -11,7 +11,6 @@ type Synchronizer struct {
 	Api       blockchain.IBlockchinApi
 	formatter blockchain.IFormatter
 	store     levelDbStore.ITransactionsStore
-	//sendedTransactions map[string]Set.Set
 }
 type SynchronizerConfig struct {
 	Api       blockchain.IBlockchinApi
@@ -53,6 +52,7 @@ func (s *Synchronizer) GetCursorData(
 		if err != blockchain.ApiRequestSuccess {
 			return nil, err
 		}
+
 		txs = append(txs, tx)
 	}
 

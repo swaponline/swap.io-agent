@@ -35,10 +35,6 @@ func InitializeServer(config Config) *SocketServer {
     if err != nil {
         log.Panic(err)
     }
-    err = config.queueEvents.ReserveQueueForUser("0")
-    if err != nil {
-        log.Panic(err)
-    }
 
     wsHandle := func(w http.ResponseWriter, r *http.Request) {
         userId, err := auth.AuthenticationRequest(r)

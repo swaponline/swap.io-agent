@@ -5,7 +5,6 @@ import (
 
 	"swap.io-agent/src/blockchain/ethereum/nodeApi/geth"
 	"swap.io-agent/src/blockchain/ethereum/transactionFormatter"
-	"swap.io-agent/src/blockchain/handshake"
 	"swap.io-agent/src/blockchain/indexer"
 	"swap.io-agent/src/blockchain/networks"
 	"swap.io-agent/src/blockchain/synchronizer"
@@ -29,8 +28,6 @@ func main() {
 		log.Panicln(err)
 	}
 
-	handshake.Test()
-
 	networks := networks.InitializeNetworks()
 	err = registry.RegisterService(networks)
 	if err != nil {
@@ -38,6 +35,7 @@ func main() {
 	}
 
 	queueEvents := queueEvents.InitializeQueueEvents()
+	queueEvents.ReserveQueueForUser("0")
 	registry.RegisterService(queueEvents)
 
 	subscribersStoreMemory, err := redisStore.InitializeDB()

@@ -48,6 +48,10 @@ func (q *QueueEvents) WriteTxsEvents(data map[string][]*blockchain.Transaction) 
 		}
 	}
 
+	if len(kafkaMessages) == 0 {
+		return nil
+	}
+
 	return q.kafkaWriter.WriteMessages(
 		context.Background(),
 		kafkaMessages...,
@@ -66,7 +70,7 @@ func (q *QueueEvents) GetTxEventNotifier(
 		GroupID:   "agentId",
 		Partition: 0,
 		MinBytes:  0,
-		MaxBytes:  10e6, // 10MBit
+		MaxBytes:  1e6, // 10MBit
 	})
 
 	notifier := make(chan blockchain.Transaction)

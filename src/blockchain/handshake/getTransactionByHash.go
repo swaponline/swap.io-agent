@@ -1,6 +1,9 @@
 package handshake
 
-import "swap.io-agent/src/blockchain"
+import (
+	"swap.io-agent/src/blockchain"
+	transactionFormatter "swap.io-agent/src/blockchain/handshake/formatter"
+)
 
 func (a *Api) GetTransactionByHash(
 	hash string,
@@ -17,12 +20,8 @@ func (a *Api) GetTransactionByHash(
 		return nil, err
 	}
 
-	rewardTx, minerAddress := a.formatter.GetRewardTx(nodeBlock)
+	minerAddress := transactionFormatter.GetBlockMinderAddress(nodeBlock)
+	tx := a.formatter.FormatTransaction(nodeTx, nodeBlock, minerAddress)
 
-	if nodeTx.Fee == 0 {
-		return rewardTx, blockchain.ApiRequestSuccess
-	} else {
-		tx := a.formatter.FormatTransaction(nodeTx, minerAddress)
-		return tx, blockchain.ApiRequestSuccess
-	}
+	return tx, blockchain.ApiRequestSuccess
 }

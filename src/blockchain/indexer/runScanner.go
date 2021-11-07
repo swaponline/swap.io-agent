@@ -2,9 +2,6 @@ package indexer
 
 import (
 	"log"
-	"strconv"
-	"time"
-
 	"swap.io-agent/src/blockchain"
 )
 
@@ -57,16 +54,70 @@ func (i *Indexer) RunScanner() {
 			currentBlock,
 		)
 		if err == blockchain.ApiNotExist {
-			for err := i.writeExpectedTxsToQueueEvents(
-				[]*blockchain.Transaction{{
-					Hash:              "time" + strconv.Itoa(int(time.Now().Unix())),
-					Journal: make([]blockchain.SpendsInfo, 0),
-					AllSpendAddresses: []string{"mi46vEy3EPcDx1PLMw7hgAhHqCWSBPnuMA"},
-				}},
-			); err != nil; {
-				log.Println("ERROR", err)
+			/*
+
+			{
+			  "hash": "caca7e52b8be4def2ae2ed42a337eb9d73103ed70b54ec11d7a5c0cc2f6f09d8",
+			  "journal": [
+			    {
+			      "asset": {
+			        "id": "HSD",
+			        "symbol": "HSD-HSD",
+			        "address": "HSD",
+			        "network": "HSD"
+			      },
+			      "entries": [
+			        {
+			          "label": "Transfer",
+			          "value": "1868500",
+			          "wallet": "hs1qqzlmrc6phwz2drwshstcr30vuhjacv5z0u2x9l"
+			        },
+			        {
+			          "label": "Block reward",
+			          "value": "-1868500",
+			          "wallet": "0000000"
+			        },
+			        {
+			          "label": "Transaction fees",
+			          "value": "1131500",
+			          "wallet": "hs1qqzlmrc6phwz2drwshstcr30vuhjacv5z0u2x9l"
+			        }
+			      ]
+			    }
+			  ],
+			  "AllSpendAddresses": [
+			    "hs1qqzlmrc6phwz2drwshstcr30vuhjacv5z0u2x9l",
+			    "0000000"
+			  ]
 			}
-			<-time.After(time.Millisecond * 100)
+
+			*/
+			//for err := i.writeExpectedTxsToQueueEvents(
+			//	[]*blockchain.Transaction{{
+			//		Hash:              "time" + strconv.Itoa(int(time.Now().Unix())),
+			//		Journal: []blockchain.SpendsInfo{
+			//			{
+			//				Asset: blockchain.SpendsAsset{
+			//					Id: "HSD",
+			//					Symbol: "HSD-HSD",
+			//					Address: "HSD",
+			//					Network: "HSD",
+			//				},
+			//				Entries: []blockchain.Spend{
+			//					{
+			//						Label: "Block reward",
+			//						Value: "123423",
+			//						Wallet: "0000000",
+			//					},
+			//				},
+			//			},
+			//		},
+			//		AllSpendAddresses: []string{"mi46vEy3EPcDx1PLMw7hgAhHqCWSBPnuMA", "0000000"},
+			//	}},
+			//); err != nil; {
+			//	log.Println("ERROR", err)
+			//}
+			//<-time.After(time.Millisecond * 1)
 			continue
 		}
 		if err != blockchain.ApiRequestSuccess {
