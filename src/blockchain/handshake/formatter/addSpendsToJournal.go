@@ -15,6 +15,9 @@ func AddSpendsToJournal(
 ) {
 	feeSize := tx.Fee
 	for _, input := range tx.Inputs {
+		if input.Coin.Value == 0 {
+			continue
+		}
 		if feeSize > 0 {
 			if feeSize >= input.Coin.Value {
 				journal.Add(HSD, blockchain.Spend{
