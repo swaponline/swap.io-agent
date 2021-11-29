@@ -10,7 +10,7 @@ type Networks map[string]blockchain.IBlockchinApi
 func InitializeNetworks() *Networks {
 	network := Networks{}
 	//network["ethereum"] = ethereum.InitializeApi()
-	network["handshake"] = handshake.InitializeApi()
+	network["Handshake"] = handshake.InitializeApi()
 
 	return &network
 }

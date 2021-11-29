@@ -17,12 +17,12 @@ func AddMinerRewardToJournal(
 		reward -= blockTx.Fee
 	}
 
-	journal.Add(HSD, blockchain.Spend{
+	journal.Add(HSN, blockchain.Spend{
 		Wallet: blockchain.BLOCK_REWARD_CREATER_ADDRESS,
 		Label:  blockchain.SPEND_LABEL_BLOCK_REWARD,
 		Value:  strconv.Itoa(-reward),
 	})
-	journal.Add(HSD, blockchain.Spend{
+	journal.Add(HSN, blockchain.Spend{
 		Wallet: tx.Outputs[0].Address,
 		Label: blockchain.SPEND_LABEL_TRANSFER,
 		Value: strconv.Itoa(reward),

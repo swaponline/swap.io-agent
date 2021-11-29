@@ -5,9 +5,10 @@ import (
 	"swap.io-agent/src/blockchain/handshake/nodeApi"
 	"swap.io-agent/src/blockchain/handshake/nodeApi/fullNodeApi"
 	"swap.io-agent/src/blockchain/journal"
+	"swap.io-agent/src/config"
 )
 
-const HSD = "HSD"
+const HSN = "HSN"
 
 type TransactionFormatter struct {
 	api *fullNodeApi.FullNodeApi
@@ -55,7 +56,7 @@ func (tf *TransactionFormatter) FormatTransaction(
 		Hash: nodeTx.Hash,
 	}
 
-	journal := journal.New(HSD)
+	journal := journal.New(config.BLOCKCHAIN)
 
 	if nodeTx.Fee == 0 {
 		AddMinerRewardToJournal(nodeTx, nodeBlock, journal)

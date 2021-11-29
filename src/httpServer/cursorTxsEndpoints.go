@@ -63,6 +63,7 @@ func (server *HttpServer) InitializeCursorTxsEndoints() {
 				return
 			}
 
+			log.Printf("get cursor %v", cursor)
 			cursorData, err := server.synhronizer.GetCursorData(
 				cursor,
 			)
