@@ -15,15 +15,15 @@ func Test() {
 }
 
 func InitializeApi() *Api {
-	fullNodeApi := fullNodeApi.InitializeFullNodeApi()
+	fullNodeApiInstance := fullNodeApi.InitializeFullNodeApi()
 	formatterNodeApi := transactionFormatter.InitializeTransactionFormatter(
 		transactionFormatter.TransactionFormatterConfig{
-			Api: fullNodeApi,
+			Api: fullNodeApiInstance,
 		},
 	)
 
 	return &Api{
-		nodeApi:   fullNodeApi,
+		nodeApi:   fullNodeApiInstance,
 		formatter: formatterNodeApi,
 	}
 }

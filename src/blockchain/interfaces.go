@@ -4,9 +4,10 @@ import (
 	"swap.io-agent/src/blockchain/ethereum/nodeApi"
 )
 
-type IBlockchinApi interface {
+type IBlockchainApi interface {
 	GetBlockByIndex(index int) (*Block, int)
 	GetTransactionByHash(hash string) (*Transaction, int)
+	PushTx(hex string) (interface{}, error)
 }
 type IFormatter interface {
 	FormatTransaction(

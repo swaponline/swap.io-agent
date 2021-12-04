@@ -13,7 +13,7 @@ import (
 
 //TODO: add validations invalid cursor
 
-func (server *HttpServer) InitializeCursorTxsEndoints() {
+func (server *HttpServer) InitializeCursorTxsEndpoints() {
 	http.HandleFunc(
 		"/getFirstCursorTransactions",
 		func(rw http.ResponseWriter, r *http.Request) {

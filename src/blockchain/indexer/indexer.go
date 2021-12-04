@@ -8,7 +8,7 @@ import (
 )
 
 type Indexer struct {
-	api               blockchain.IBlockchinApi
+	api               blockchain.IBBlockchainApi
 	transactionsStore levelDbStore.ITransactionsStore
 	queueEvents       *queueEvents.QueueEvents
 	subscribesManager *subscribersManager.SubscribesManager
@@ -16,7 +16,7 @@ type Indexer struct {
 	NewTransactions   chan *blockchain.Transaction
 }
 type IndexerConfig struct {
-	Api               blockchain.IBlockchinApi
+	Api               blockchain.IBBlockchainApi
 	TransactionsStore *levelDbStore.TransactionsStore
 	QueueEvents       *queueEvents.QueueEvents
 	SubscribesManager *subscribersManager.SubscribesManager

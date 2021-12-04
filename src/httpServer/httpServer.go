@@ -13,7 +13,7 @@ type HttpServer struct {
 	synhronizer blockchain.ISynchronizer
 }
 type HttpServerConfig struct {
-	Synhronizer blockchain.ISynchronizer
+	Synhronizer        blockchain.ISynchronizer
 	SubscribersManager *subscribersManager.SubscribesManager
 }
 
@@ -31,7 +31,7 @@ func InitializeServer(config HttpServerConfig) *HttpServer {
 			io.WriteString(writer, token)
 		}
 	})
-	httpServer.InitializeCursorTxsEndoints()
+	httpServer.InitializeCursorTxsEndpoints()
 	httpServer.InitializeSubscriptionsEndpoints(config.SubscribersManager)
 
 	return &httpServer

@@ -5,7 +5,7 @@ import (
 	"swap.io-agent/src/blockchain/handshake"
 )
 
-type Networks map[string]blockchain.IBlockchinApi
+type Networks map[string]blockchain.IBlockchainApi
 
 func InitializeNetworks() *Networks {
 	network := Networks{}
