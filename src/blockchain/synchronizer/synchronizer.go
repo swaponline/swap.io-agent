@@ -8,12 +8,12 @@ import (
 )
 
 type Synchronizer struct {
-	Api       blockchain.IBBlockchainApi
+	Api       blockchain.IBlockchainApi
 	formatter blockchain.IFormatter
 	store     levelDbStore.ITransactionsStore
 }
 type SynchronizerConfig struct {
-	Api       blockchain.IBBlockchainApi
+	Api       blockchain.IBlockchainApi
 	Formatter blockchain.IFormatter
 	Store     levelDbStore.ITransactionsStore
 }

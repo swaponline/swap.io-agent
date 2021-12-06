@@ -1,13 +1,12 @@
 package httpServer
 
 import (
-	"encoding/json"
 	"io"
 	"net/http"
 	"swap.io-agent/src/blockchain"
 )
 
-func InitialisePushTxEndpoint(api blockchain.IBlockchainApi) {
+func (*HttpServer) InitialisePushTxEndpoint(api blockchain.IBlockchainApi) {
 	http.HandleFunc("/pushTx", func(writer http.ResponseWriter, request *http.Request) {
 		txHex, err := io.ReadAll(request.Body)
 		if err != nil {
@@ -17,14 +16,13 @@ func InitialisePushTxEndpoint(api blockchain.IBlockchainApi) {
 		}
 
 		result, err := api.PushTx(string(txHex))
-		resultBytes, _ := json.Marshal(result)
+		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 		if err != nil {
 			writer.WriteHeader(http.StatusBadRequest)
-			writer.Write(resultBytes)
+			writer.Write(result)
 			return
 		}
-
 		writer.WriteHeader(http.StatusOK)
-		writer.Write(resultBytes)
+		writer.Write(result)
 	})
 }

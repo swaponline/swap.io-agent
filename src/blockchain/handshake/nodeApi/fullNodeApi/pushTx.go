@@ -1,13 +1,13 @@
 package fullNodeApi
 
 import (
-	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 )
 
-func (n *FullNodeApi) PushTx(hex string) (interface{}, error) {
+func (n *FullNodeApi) PushTx(hex string) ([]byte, error) {
 	req, err := http.NewRequest(
 		"POST",
 		fmt.Sprintf(`%v/broadcast`, n.baseUrl),
@@ -24,10 +24,9 @@ func (n *FullNodeApi) PushTx(hex string) (interface{}, error) {
 		return nil, err
 	}
 
-	var result interface{}
-	err = json.NewDecoder(resp.Body).Decode(result)
-	if err != nil {
-		return nil, err
+	result, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		return result, fmt.Errorf("return non ok status code")
 	}
 
 	return result, nil

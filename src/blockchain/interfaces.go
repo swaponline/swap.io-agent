@@ -7,7 +7,7 @@ import (
 type IBlockchainApi interface {
 	GetBlockByIndex(index int) (*Block, int)
 	GetTransactionByHash(hash string) (*Transaction, int)
-	PushTx(hex string) (interface{}, error)
+	PushTx(hex string) ([]byte, error)
 }
 type IFormatter interface {
 	FormatTransaction(

@@ -2,6 +2,8 @@ package httpServer
 
 import (
 	"log"
+	"swap.io-agent/src/blockchain/networks"
+	"swap.io-agent/src/config"
 	"swap.io-agent/src/subscribersManager"
 
 	"swap.io-agent/src/blockchain/synchronizer"
@@ -21,10 +23,21 @@ func Register(reg *serviceRegistry.ServiceRegistry) {
 		log.Panicln(err)
 	}
 
+	var n *networks.Networks
+	err = reg.FetchService(&n)
+	if err != nil {
+		log.Panicln(err)
+	}
+	blockchainApi, ok := (*n)[config.BLOCKCHAIN]
+	if !ok {
+		log.Panicln(ok, "not found blockchain api")
+	}
+
 	err = reg.RegisterService(
 		InitializeServer(HttpServerConfig{
-			Synhronizer: s,
+			Synhronizer:        s,
 			SubscribersManager: sm,
+			BlockchainApi:      blockchainApi,
 		}),
 	)
 	if err != nil {
