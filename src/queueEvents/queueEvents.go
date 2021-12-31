@@ -12,23 +12,22 @@ import (
 )
 
 type QueueEvents struct {
-	controllerConn *kafka.Conn
-	kafkaWriter    *kafka.Writer
+	conn *kafka.Conn
 }
 
 func InitializeQueueEvents() *QueueEvents {
-	controllerConn, err := kafka.Dial("tcp", config.KAFKA_ADDR)
+	conn, err := kafka.DialLeader(
+		context.Background(),
+		"tcp",
+		config.KAFKA_ADDR,
+		"0",
+		0,
+	)
 	if err != nil {
 		log.Panicln(err)
 	}
-	kafkaWriter := &kafka.Writer{
-		Addr:     kafka.TCP(config.KAFKA_ADDR),
-		Balancer: &kafka.LeastBytes{},
-	}
-
 	return &QueueEvents{
-		controllerConn: controllerConn,
-		kafkaWriter:    kafkaWriter,
+		conn: conn,
 	}
 }
 
@@ -52,10 +51,10 @@ func (q *QueueEvents) WriteTxsEvents(data map[string][]*blockchain.Transaction) 
 		return nil
 	}
 
-	return q.kafkaWriter.WriteMessages(
-		context.Background(),
+	_, err := q.conn.WriteMessages(
 		kafkaMessages...,
 	)
+	return err
 }
 func (q *QueueEvents) GetTxEventNotifier(
 	ctx context.Context,
@@ -97,12 +96,14 @@ func (q *QueueEvents) GetTxEventNotifier(
 			}
 
 			select {
-			case <-ctx.Done(): return
+			case <-ctx.Done():
+				return
 			case notifier <- tx:
 			}
 
 			select {
-			case <-ctx.Done(): return
+			case <-ctx.Done():
+				return
 			case <-isOk:
 			}
 
@@ -116,7 +117,7 @@ func (q *QueueEvents) GetTxEventNotifier(
 	return notifier, isOk
 }
 func (q *QueueEvents) ReserveQueueForUser(agentUserId string) error {
-	err := q.controllerConn.CreateTopics(kafka.TopicConfig{
+	err := q.conn.CreateTopics(kafka.TopicConfig{
 		Topic:             agentUserId,
 		NumPartitions:     1,
 		ReplicationFactor: 1,
