@@ -1,0 +1,1 @@
+./hsd/bin/hsd --network main --http-host 0.0.0.0 --api-key test --daemin --index-address=true --index-tx=true
