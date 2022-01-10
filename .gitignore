@@ -5,6 +5,7 @@
 .env
 
 deploy.sh
+run.sh
 
 /blockchainIndexes
 /subscriptions

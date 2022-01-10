@@ -6,10 +6,10 @@ import (
 )
 
 type TransactionNotifierPipe struct {
-	input            chan *blockchain.Transaction
-	Out              chan *blockchain.TransactionPipeData
-	subscribersStore *subscribersManager.SubscribesManager
-	stop             chan bool
+	inp                chan *blockchain.Transaction
+	Out                chan *blockchain.TransactionPipeData
+	subscribersManager *subscribersManager.SubscribesManager
+	stop               chan struct{}
 }
 
 type TransactionNotifierPipeConfig struct {
@@ -21,37 +21,16 @@ func InitializeTransactionNotifierPipe(
 	config TransactionNotifierPipeConfig,
 ) *TransactionNotifierPipe {
 	return &TransactionNotifierPipe{
-		input:            config.Input,
-		Out:              make(chan *blockchain.TransactionPipeData),
-		subscribersStore: config.SubscribersManager,
+		inp:                config.Input,
+		Out:                make(chan *blockchain.TransactionPipeData),
+		subscribersManager: config.SubscribersManager,
 	}
 }
 func (tnp *TransactionNotifierPipe) Start() {
-	exit := false
-	for !exit {
-		select {
-		case transaction := <-tnp.input:
-			{
-				subscribers := tnp.subscribersStore.GetSubscribersFromAddresses(
-					transaction.AllSpendAddresses,
-				)
-				if len(subscribers) > 0 {
-					tnp.Out <- &blockchain.TransactionPipeData{
-						Subscribers: subscribers,
-						Transaction: transaction,
-					}
-				}
-			}
-
-		case <-tnp.stop:
-			{
-				exit = true
-			}
-		}
-	}
+	FilterExpectedTxsPipe(tnp.subscribersManager, tnp.inp, tnp.Out, tnp.stop)
 }
 func (tnp *TransactionNotifierPipe) Stop() error {
-	tnp.stop <- true
+	close(tnp.stop)
 	return nil
 }
 func (tnp *TransactionNotifierPipe) Status() error {

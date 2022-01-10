@@ -2,8 +2,9 @@ package indexer
 
 import (
 	"log"
-	"swap.io-agent/src/blockchain"
 	"time"
+
+	"swap.io-agent/src/blockchain"
 )
 
 func (i *Indexer) RunScanner() {
@@ -33,14 +34,14 @@ func (i *Indexer) RunScanner() {
 		for err := i.writeExpectedTxsToQueueEvents(
 			block.Transactions,
 		); err != nil; {
-			log.Println("ERROR", err)
+			log.Println("ERROR write to queue events", err, block.Transactions)
 		}
 
 		for err := i.transactionsStore.WriteLastIndexedTransactions(
 			indexedTransactions,
 			currentBlock,
 		); err != nil; {
-			log.Println("ERROR", err, indexedTransactions)
+			log.Println("ERROR write to transaction store", err, indexedTransactions)
 		}
 
 		currentBlock += 1
@@ -94,14 +95,14 @@ func (i *Indexer) RunScanner() {
 		for err := i.writeExpectedTxsToQueueEvents(
 			block.Transactions,
 		); err != nil; {
-			log.Println("ERROR", err)
+			log.Println("ERROR write to queue events", err, block.Transactions)
 		}
 
 		for err := i.transactionsStore.WriteLastIndexedTransactions(
 			indexedTransactions,
 			currentBlock,
 		); err != nil; {
-			log.Println("ERROR", err)
+			log.Println("ERROR write to transaction store", err, indexedTransactions, currentBlock)
 		}
 
 		currentBlock += 1
