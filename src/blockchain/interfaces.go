@@ -8,6 +8,7 @@ type IBlockchainApi interface {
 	GetBlockByIndex(index int) (*Block, int)
 	GetTransactionByHash(hash string) (*Transaction, int)
 	PushTx(hex string) ([]byte, error)
+	WatchMempoolTxs(chan *Transaction) error
 }
 type IFormatter interface {
 	FormatTransaction(

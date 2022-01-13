@@ -8,7 +8,7 @@ import (
 	"swap.io-agent/src/blockchain/indexer"
 	"swap.io-agent/src/blockchain/networks"
 	"swap.io-agent/src/blockchain/synchronizer"
-	"swap.io-agent/src/blockchain/transactionNotifierPipe"
+	"swap.io-agent/src/blockchain/txsPipes"
 	"swap.io-agent/src/config"
 	"swap.io-agent/src/httpHandler"
 	"swap.io-agent/src/httpServer"
@@ -93,7 +93,8 @@ func main() {
 
 	indexer.IndexerRegister(registry)
 
-	transactionNotifierPipe.Register(registry)
+	txsPipes.NewTxsNotifierPipeRegister(registry)
+	txsPipes.MempoolTxsNotifierPipeRegister(registry)
 
 	socketServer.Register(registry)
 

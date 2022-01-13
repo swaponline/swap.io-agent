@@ -3,7 +3,6 @@ package socketServer
 import (
 	"log"
 
-	"swap.io-agent/src/blockchain/transactionNotifierPipe"
 	"swap.io-agent/src/queueEvents"
 	"swap.io-agent/src/redisStore"
 	"swap.io-agent/src/serviceRegistry"
@@ -29,17 +28,11 @@ func Register(reg *serviceRegistry.ServiceRegistry) {
 		log.Panicln(err)
 	}
 
-	var notifyTransactionPipe *transactionNotifierPipe.TransactionNotifierPipe
-	err = reg.FetchService(&notifyTransactionPipe)
-	if err != nil {
-		log.Panicln(err)
-	}
-
 	err = reg.RegisterService(
 		InitializeServer(Config{
-			usersManager:     usersManager,
+			usersManager:       usersManager,
 			subscribersManager: subscribersManager,
-			queueEvents:      queueEvents,
+			queueEvents:        queueEvents,
 		}),
 	)
 	if err != nil {

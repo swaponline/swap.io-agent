@@ -1,4 +1,4 @@
-package transactionNotifierPipe
+package txsPipes
 
 import (
 	"swap.io-agent/src/blockchain"

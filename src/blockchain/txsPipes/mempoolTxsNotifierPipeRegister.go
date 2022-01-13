@@ -1,4 +1,4 @@
-package transactionNotifierPipe
+package txsPipes
 
 import (
 	"log"
@@ -8,7 +8,7 @@ import (
 	"swap.io-agent/src/subscribersManager"
 )
 
-func Register(reg *serviceRegistry.ServiceRegistry) {
+func MempoolTxsNotifierPipeRegister(reg *serviceRegistry.ServiceRegistry) {
 	var indexer *indexer.Indexer
 	err := reg.FetchService(&indexer)
 	if err != nil {
@@ -22,7 +22,7 @@ func Register(reg *serviceRegistry.ServiceRegistry) {
 	}
 
 	err = reg.RegisterService(
-		InitializeTransactionNotifierPipe(TransactionNotifierPipeConfig{
+		InitializeMempoolTxsNotifierPipe(MempoolTxsNotifierPipeConfig{
 			Input:              indexer.NewTransactions,
 			SubscribersManager: subscribersManager,
 		}),
