@@ -6,43 +6,42 @@ import (
 	"log"
 	"time"
 
-	"github.com/segmentio/kafka-go"
+	"github.com/Shopify/sarama"
 	"swap.io-agent/src/blockchain"
 	"swap.io-agent/src/config"
 )
 
 type QueueEvents struct {
-	conn *kafka.Conn
+	p sarama.SyncProducer
 }
 
 func InitializeQueueEvents() *QueueEvents {
-	conn, err := kafka.DialLeader(
-		context.Background(),
-		"tcp",
-		config.KAFKA_ADDR,
-		"0",
-		0,
-	)
+	kafkaConfig := sarama.NewConfig()
+	kafkaConfig.Producer.Return.Successes = true
+	kafkaConfig.Producer.RequiredAcks = -1
+
+	p, err := sarama.NewSyncProducer([]string{config.KAFKA_ADDR}, kafkaConfig)
 	if err != nil {
 		log.Panicln(err)
 	}
+
 	return &QueueEvents{
-		conn: conn,
+		p,
 	}
 }
 
 func (q *QueueEvents) WriteTxsEvents(data map[string][]*blockchain.Transaction) error {
-	kafkaMessages := make([]kafka.Message, 0)
+	kafkaMessages := make([]*sarama.ProducerMessage, 0)
 	for agentUserId, txs := range data {
 		for _, tx := range txs {
 			bytes, err := json.Marshal(tx)
 			if err != nil {
 				return err
 			}
-			kafkaMessages = append(kafkaMessages, kafka.Message{
-				Topic: agentUserId,
-				Key:   []byte(tx.Hash),
-				Value: bytes,
+			kafkaMessages = append(kafkaMessages, &sarama.ProducerMessage{
+				Topic: config.BLOCKCHAIN + "." + agentUserId,
+				Key:   sarama.StringEncoder(tx.Hash),
+				Value: sarama.ByteEncoder(bytes),
 			})
 		}
 	}
@@ -51,10 +50,45 @@ func (q *QueueEvents) WriteTxsEvents(data map[string][]*blockchain.Transaction) 
 		return nil
 	}
 
-	_, err := q.conn.WriteMessages(
-		kafkaMessages...,
-	)
-	return err
+	return q.p.SendMessages(kafkaMessages)
+}
+
+type consumerGroupHandler struct {
+	ctx      context.Context
+	notifier chan blockchain.Transaction
+	isOk     chan struct{}
+}
+
+func (consumerGroupHandler) Setup(_ sarama.ConsumerGroupSession) error   { return nil }
+func (consumerGroupHandler) Cleanup(_ sarama.ConsumerGroupSession) error { return nil }
+func (h consumerGroupHandler) ConsumeClaim(
+	sess sarama.ConsumerGroupSession,
+	claim sarama.ConsumerGroupClaim,
+) error {
+	for msg := range claim.Messages() {
+		log.Printf("Message topic:%q partition:%d offset:%d\n", msg.Topic, msg.Partition, msg.Offset)
+
+		var tx blockchain.Transaction
+		if err := json.Unmarshal(msg.Value, &tx); err != nil {
+			log.Panicln(err, string(msg.Value))
+		}
+
+		select {
+		case <-h.ctx.Done():
+			return nil
+		case h.notifier <- tx:
+		}
+
+		select {
+		case <-h.ctx.Done():
+			return nil
+		case <-h.isOk:
+		}
+
+		sess.MarkMessage(msg, "")
+		sess.Commit()
+	}
+	return nil
 }
 func (q *QueueEvents) GetTxEventNotifier(
 	ctx context.Context,
@@ -63,14 +97,37 @@ func (q *QueueEvents) GetTxEventNotifier(
 	<-chan blockchain.Transaction,
 	chan<- struct{},
 ) {
-	r := kafka.NewReader(kafka.ReaderConfig{
-		Brokers:   []string{config.KAFKA_ADDR},
-		Topic:     agentUserId,
-		GroupID:   "agentId",
-		Partition: 0,
-		MinBytes:  0,
-		MaxBytes:  1e6, // 10MBit
-	})
+	consumerGroupConfig := sarama.NewConfig()
+	consumerGroupConfig.Consumer.Return.Errors = true
+	consumerGroupConfig.Consumer.Offsets.AutoCommit.Enable = false
+	consumerGroupConfig.Consumer.Offsets.Initial = sarama.OffsetOldest
+
+	groupConsumer, err := sarama.NewConsumerGroup(
+		[]string{config.KAFKA_ADDR},
+		"agentId",
+		consumerGroupConfig,
+	)
+	if err != nil {
+		log.Panicln(err)
+	}
+	go func() {
+		for {
+			select {
+			case err, ok := <-groupConsumer.Errors():
+				{
+					if ok {
+						log.Println("ERROR", err)
+					} else {
+						return
+					}
+				}
+			case <-ctx.Done():
+				{
+					return
+				}
+			}
+		}
+	}()
 
 	notifier := make(chan blockchain.Transaction)
 	isOk := make(chan struct{})
@@ -79,8 +136,18 @@ func (q *QueueEvents) GetTxEventNotifier(
 		defer close(notifier)
 		defer close(isOk)
 
-		for ctx.Err() == nil {
-			m, err := r.FetchMessage(ctx)
+		handler := consumerGroupHandler{
+			ctx:      ctx,
+			notifier: notifier,
+			isOk:     isOk,
+		}
+
+		for {
+			err := groupConsumer.Consume(
+				ctx,
+				[]string{config.BLOCKCHAIN + "." + agentUserId},
+				handler,
+			)
 			if ctx.Err() != nil {
 				return
 			}
@@ -89,41 +156,24 @@ func (q *QueueEvents) GetTxEventNotifier(
 				<-time.After(time.Second)
 				continue
 			}
-
-			var tx blockchain.Transaction
-			if err := json.Unmarshal(m.Value, &tx); err != nil {
-				log.Panicln(err, string(m.Value))
-			}
-
-			select {
-			case <-ctx.Done():
-				return
-			case notifier <- tx:
-			}
-
-			select {
-			case <-ctx.Done():
-				return
-			case <-isOk:
-			}
-
-			for err := r.CommitMessages(context.Background(), m); err != nil; {
-				log.Println("failed to commit messages:", err)
-				<-time.After(time.Second)
-			}
 		}
 	}()
 
 	return notifier, isOk
 }
 func (q *QueueEvents) ReserveQueueForUser(agentUserId string) error {
-	err := q.conn.CreateTopics(kafka.TopicConfig{
-		Topic:             agentUserId,
+	admin, err := sarama.NewClusterAdmin([]string{config.KAFKA_ADDR}, nil)
+	if err != nil {
+		log.Println("Error while creating cluster admin: ", err.Error())
+		return err
+	}
+	defer func() { _ = admin.Close() }()
+	err = admin.CreateTopic(config.BLOCKCHAIN+"."+agentUserId, &sarama.TopicDetail{
 		NumPartitions:     1,
 		ReplicationFactor: 1,
-	})
+	}, false)
 	if err != nil {
-		return err
+		log.Fatal("Error while creating topic: ", err.Error())
 	}
 	return nil
 }
