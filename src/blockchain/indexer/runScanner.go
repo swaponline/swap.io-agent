@@ -58,7 +58,7 @@ func (i *Indexer) RunScanner() {
 		if err == blockchain.ApiNotExist {
 			//log.Println("Send test tx")
 			//i.writeExpectedTxsToQueueEvents([]*blockchain.Transaction{{
-			//	Hash: strconv.Itoa(int(time.Now().Unix())),
+			//	Hash: strconv.Itoa(int(time.Now().UnixNano())),
 			//	Journal: []blockchain.SpendsInfo{{
 			//		Asset: blockchain.SpendsAsset{
 			//			Id:      "HSN",
@@ -66,13 +66,12 @@ func (i *Indexer) RunScanner() {
 			//		},
 			//		Entries: []blockchain.Spend{{
 			//			Label:  "test",
-			//			Value:  "-2002210000",
-			//			Wallet: "0000000",
+			//			Value:  "-2",
+			//			Wallet: "hs1qyvu2uyh8kqgxts0dacy0m47at005nrxn2zuqnl",
 			//		}},
 			//	}},
 			//	AllSpendAddresses: []string{
-			//		"0000000",
-			//		"hs1q7q3h4chglps004u3yn79z0cp9ed24rfr5ka9n5",
+			//		"hs1qyvu2uyh8kqgxts0dacy0m47at005nrxn2zuqnl",
 			//	},
 			//}})
 			<-time.After(time.Millisecond * 500)

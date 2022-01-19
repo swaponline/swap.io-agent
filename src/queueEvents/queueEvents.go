@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Shopify/sarama"
@@ -172,7 +173,7 @@ func (q *QueueEvents) ReserveQueueForUser(agentUserId string) error {
 		NumPartitions:     1,
 		ReplicationFactor: 1,
 	}, false)
-	if err != nil {
+	if err != nil && !strings.HasPrefix(err.Error(), sarama.ErrTopicAlreadyExists.Error()) {
 		log.Fatal("Error while creating topic: ", err.Error())
 	}
 	return nil
