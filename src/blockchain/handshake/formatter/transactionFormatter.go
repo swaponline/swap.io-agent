@@ -58,7 +58,7 @@ func (tf *TransactionFormatter) FormatTransaction(
 
 	journal := journal.New(config.BLOCKCHAIN)
 
-	if nodeTx.Fee == 0 {
+	if nodeBlock != nil && nodeTx.Fee == 0 {
 		AddMinerRewardToJournal(nodeTx, nodeBlock, journal)
 	} else {
 		AddSpendsToJournal(nodeTx, journal, minerAddress)

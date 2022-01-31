@@ -4,12 +4,14 @@ import (
 	"log"
 	"net/http"
 	"os"
+	transactionFormatter "swap.io-agent/src/blockchain/handshake/formatter"
 )
 
 type FullNodeApi struct {
-	baseUrl string
-	apiKey  string
-	client  http.Client
+	baseUrl   string
+	apiKey    string
+	formatter transactionFormatter.TransactionFormatter
+	client    http.Client
 }
 
 func InitializeFullNodeApi() *FullNodeApi {
