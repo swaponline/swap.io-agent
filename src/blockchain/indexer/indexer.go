@@ -8,12 +8,13 @@ import (
 )
 
 type Indexer struct {
-	api               blockchain.IBlockchainApi
-	transactionsStore levelDbStore.ITransactionsStore
-	queueEvents       *queueEvents.QueueEvents
-	subscribesManager *subscribersManager.SubscribesManager
-	isSynchronize     chan struct{}
-	NewTransactions   chan *blockchain.Transaction
+	api                    blockchain.IBlockchainApi
+	transactionsStore      levelDbStore.ITransactionsStore
+	queueEvents            *queueEvents.QueueEvents
+	subscribesManager      *subscribersManager.SubscribesManager
+	isSynchronize          chan struct{}
+	NewTransactions        chan *blockchain.Transaction
+	NewMempoolTransactions chan *blockchain.Transaction
 }
 type IndexerConfig struct {
 	Api               blockchain.IBlockchainApi
@@ -24,16 +25,18 @@ type IndexerConfig struct {
 
 func InitializeIndexer(config IndexerConfig) *Indexer {
 	indexer := &Indexer{
-		api:               config.Api,
-		transactionsStore: config.TransactionsStore,
-		queueEvents:       config.QueueEvents,
-		subscribesManager: config.SubscribesManager,
-		isSynchronize:     make(chan struct{}),
-		NewTransactions:   make(chan *blockchain.Transaction),
+		api:                    config.Api,
+		transactionsStore:      config.TransactionsStore,
+		queueEvents:            config.QueueEvents,
+		subscribesManager:      config.SubscribesManager,
+		isSynchronize:          make(chan struct{}),
+		NewTransactions:        make(chan *blockchain.Transaction),
+		NewMempoolTransactions: make(chan *blockchain.Transaction),
 	}
 
 	go indexer.RunScanner()
 	<-indexer.isSynchronize
+	go indexer.RunWatchMempool()
 
 	return indexer
 }

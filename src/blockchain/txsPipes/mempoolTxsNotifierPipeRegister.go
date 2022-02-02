@@ -23,7 +23,7 @@ func MempoolTxsNotifierPipeRegister(reg *serviceRegistry.ServiceRegistry) {
 
 	err = reg.RegisterService(
 		InitializeMempoolTxsNotifierPipe(MempoolTxsNotifierPipeConfig{
-			Input:              indexer.NewTransactions,
+			Input:              indexer.NewMempoolTransactions,
 			SubscribersManager: subscribersManager,
 		}),
 	)

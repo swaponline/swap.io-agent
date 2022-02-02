@@ -3,10 +3,11 @@ package fullNodeApi
 import (
 	"log"
 	"swap.io-agent/src/blockchain"
+	"swap.io-agent/src/blockchain/handshake/nodeApi"
 	"time"
 )
 
-func (fn *FullNodeApi) WatchMempoolTxs(out chan *blockchain.Transaction) error {
+func (fn *FullNodeApi) WatchMempoolTxs(out chan *nodeApi.Transaction) error {
 	buf := make(map[string]struct{})
 	for {
 		txsHashes, err := fn.GetMempool()
@@ -24,8 +25,7 @@ func (fn *FullNodeApi) WatchMempoolTxs(out chan *blockchain.Transaction) error {
 						continue
 					}
 
-					tx := fn.formatter.FormatTransaction(nodeTx, nil, "")
-					out <- tx
+					out <- nodeTx
 
 					buf[txHash] = struct{}{}
 					break
